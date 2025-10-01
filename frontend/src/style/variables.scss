@@ -1,0 +1,211 @@
+// 颜色变量
+$primary-color: #409eff;
+$success-color: #67c23a;
+$warning-color: #e6a23c;
+$danger-color: #f56c6c;
+$info-color: #909399;
+
+// 文本颜色
+$text-primary: #303133;
+$text-regular: #606266;
+$text-secondary: #909399;
+$text-placeholder: #c0c4cc;
+
+// 边框颜色
+$border-base: #dcdfe6;
+$border-light: #e4e7ed;
+$border-lighter: #ebeef5;
+$border-extra-light: #f2f6fc;
+
+// 背景颜色
+$bg-color: #ffffff;
+$bg-color-page: #f2f3f5;
+$bg-color-overlay: #ffffff;
+
+// 阴影
+$box-shadow-base: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.04);
+$box-shadow-dark: 0 2px 4px rgba(0, 0, 0, 0.12), 0 0 6px rgba(0, 0, 0, 0.12);
+$box-shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+
+// 字体
+$font-size-extra-large: 20px;
+$font-size-large: 18px;
+$font-size-medium: 16px;
+$font-size-base: 14px;
+$font-size-small: 13px;
+$font-size-extra-small: 12px;
+
+// 间距
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-xxl: 48px;
+
+// 圆角
+$border-radius-base: 4px;
+$border-radius-small: 2px;
+$border-radius-round: 20px;
+$border-radius-circle: 100%;
+
+// 断点
+$breakpoint-xs: 480px;
+$breakpoint-sm: 768px;
+$breakpoint-md: 992px;
+$breakpoint-lg: 1200px;
+$breakpoint-xl: 1920px;
+
+// Z-index
+$z-index-normal: 1;
+$z-index-top: 1000;
+$z-index-popper: 2000;
+
+// 动画时间
+$transition-duration: 0.3s;
+$transition-function-ease-in-out-bezier: cubic-bezier(0.645, 0.045, 0.355, 1);
+
+// 主题色调色板
+$primary-light-1: mix(#ffffff, $primary-color, 10%);
+$primary-light-2: mix(#ffffff, $primary-color, 20%);
+$primary-light-3: mix(#ffffff, $primary-color, 30%);
+$primary-light-4: mix(#ffffff, $primary-color, 40%);
+$primary-light-5: mix(#ffffff, $primary-color, 50%);
+$primary-light-6: mix(#ffffff, $primary-color, 60%);
+$primary-light-7: mix(#ffffff, $primary-color, 70%);
+$primary-light-8: mix(#ffffff, $primary-color, 80%);
+$primary-light-9: mix(#ffffff, $primary-color, 90%);
+
+// 成功色调色板
+$success-light-1: mix(#ffffff, $success-color, 10%);
+$success-light-2: mix(#ffffff, $success-color, 20%);
+$success-light-3: mix(#ffffff, $success-color, 30%);
+$success-light-4: mix(#ffffff, $success-color, 40%);
+$success-light-5: mix(#ffffff, $success-color, 50%);
+$success-light-6: mix(#ffffff, $success-color, 60%);
+$success-light-7: mix(#ffffff, $success-color, 70%);
+$success-light-8: mix(#ffffff, $success-color, 80%);
+$success-light-9: mix(#ffffff, $success-color, 90%);
+
+// 警告色调色板
+$warning-light-1: mix(#ffffff, $warning-color, 10%);
+$warning-light-2: mix(#ffffff, $warning-color, 20%);
+$warning-light-3: mix(#ffffff, $warning-color, 30%);
+$warning-light-4: mix(#ffffff, $warning-color, 40%);
+$warning-light-5: mix(#ffffff, $warning-color, 50%);
+$warning-light-6: mix(#ffffff, $warning-color, 60%);
+$warning-light-7: mix(#ffffff, $warning-color, 70%);
+$warning-light-8: mix(#ffffff, $warning-color, 80%);
+$warning-light-9: mix(#ffffff, $warning-color, 90%);
+
+// 危险色调色板
+$danger-light-1: mix(#ffffff, $danger-color, 10%);
+$danger-light-2: mix(#ffffff, $danger-color, 20%);
+$danger-light-3: mix(#ffffff, $danger-color, 30%);
+$danger-light-4: mix(#ffffff, $danger-color, 40%);
+$danger-light-5: mix(#ffffff, $danger-color, 50%);
+$danger-light-6: mix(#ffffff, $danger-color, 60%);
+$danger-light-7: mix(#ffffff, $danger-color, 70%);
+$danger-light-8: mix(#ffffff, $danger-color, 80%);
+$danger-light-9: mix(#ffffff, $danger-color, 90%);
+
+// 布局变量
+$header-height: 60px;
+$sidebar-width: 200px;
+$sidebar-collapsed-width: 64px;
+$footer-height: 50px;
+
+// 表格变量
+$table-border-color: $border-lighter;
+$table-header-bg: #fafafa;
+$table-row-hover-bg: #f5f7fa;
+
+// 卡片变量
+$card-border-color: $border-lighter;
+$card-shadow: $box-shadow-base;
+$card-border-radius: $border-radius-base;
+
+// 按钮变量
+$button-border-radius: $border-radius-base;
+$button-font-weight: 500;
+
+// 输入框变量
+$input-border-color: $border-base;
+$input-border-radius: $border-radius-base;
+$input-focus-border-color: $primary-color;
+
+// 导航变量
+$menu-item-height: 56px;
+$menu-item-font-size: $font-size-base;
+$menu-bg-color: #001529;
+$menu-item-color: rgba(255, 255, 255, 0.65);
+$menu-item-active-bg: $primary-color;
+
+// 响应式混入
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == xs {
+    @media (max-width: #{$breakpoint-xs - 1px}) {
+      @content;
+    }
+  }
+  @if $breakpoint == sm {
+    @media (min-width: #{$breakpoint-xs}) and (max-width: #{$breakpoint-sm - 1px}) {
+      @content;
+    }
+  }
+  @if $breakpoint == md {
+    @media (min-width: #{$breakpoint-sm}) and (max-width: #{$breakpoint-md - 1px}) {
+      @content;
+    }
+  }
+  @if $breakpoint == lg {
+    @media (min-width: #{$breakpoint-md}) and (max-width: #{$breakpoint-lg - 1px}) {
+      @content;
+    }
+  }
+  @if $breakpoint == xl {
+    @media (min-width: #{$breakpoint-lg}) {
+      @content;
+    }
+  }
+}
+
+// 文本省略混入
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// 多行文本省略混入
+@mixin text-ellipsis-multiline($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// 清除浮动混入
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// 居中混入
+@mixin center-flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// 绝对居中混入
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
