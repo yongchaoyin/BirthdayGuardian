@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: birthday-guardian-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: birthday_guardian
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backend/src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - birthday-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    container_name: birthday-guardian-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/birthday_guardian?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      TZ: Asia/Shanghai
+    ports:
+      - "80:8089"
+      - "8089:8089"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - birthday-network
+    restart: unless-stopped
+
+networks:
+  birthday-network:
+    driver: bridge
+
+volumes:
+  mysql-data:

@@ -1,0 +1,10 @@
+# 忽略node_modules
+node_modules/
+npm-debug.log
+.DS_Store
+dist/
+target/
+*.class
+*.log
+.env
+.env.local
