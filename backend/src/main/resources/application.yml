@@ -7,15 +7,29 @@ spring:
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/birthday_guardian?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://59.110.14.90:3306/birthday_guardian?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false}
     username: ${SPRING_DATASOURCE_USERNAME:root}
     password: ${SPRING_DATASOURCE_PASSWORD:root}
 
   mail:
     host: ${SPRING_MAIL_HOST:smtp.163.com}
     port: ${SPRING_MAIL_PORT:465}
-    username: ${SPRING_MAIL_USERNAME:your-email@163.com}
-    password: ${SPRING_MAIL_PASSWORD:your-authorization-code}
+    username: ${SPRING_MAIL_USERNAME:ekker02@163.com}
+    password: ${SPRING_MAIL_PASSWORD:7ujm8ik,!}
+
+sms:
+  config:
+    config-type: YAML
+    is-print: false
+  blends:
+    default:
+      supplier: ${SMS_SUPPLIER:alibaba}
+      access-key-id: ${SMS_ACCESS_KEY:}
+      access-key-secret: ${SMS_ACCESS_SECRET:}
+      template-id: ${SMS_TEMPLATE_ID:}
+      template-name: ${SMS_TEMPLATE_NAME:content}
+      signature: ${SMS_SIGN_NAME:生日守护者}
+      region-id: ${SMS_REGION_ID:cn-hangzhou}
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml

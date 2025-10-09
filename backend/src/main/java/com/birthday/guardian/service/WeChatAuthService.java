@@ -4,6 +4,7 @@ import com.birthday.guardian.config.WeChatMpProperties;
 import com.birthday.guardian.entity.User;
 import com.birthday.guardian.entity.UserWechat;
 import com.birthday.guardian.mapper.UserMapper;
+import me.chanjar.weixin.common.bean.WxJsapiSignature;
 import me.chanjar.weixin.common.bean.WxOAuth2UserInfo;
 import me.chanjar.weixin.common.bean.oauth2.WxOAuth2AccessToken;
 import me.chanjar.weixin.common.error.WxErrorException;
@@ -67,5 +68,16 @@ public class WeChatAuthService {
         String target = StringUtils.hasText(redirectUrl) ? redirectUrl : properties.getReminderUrl();
         // 修复方法名，使用正确的OAuth2授权URL构建方法
         return wxMpService.getOAuth2Service().buildAuthorizationUrl(target, "snsapi_userinfo", state);
+    }
+
+    public WxJsapiSignature createJsSdkSignature(String url) {
+        if (!StringUtils.hasText(url)) {
+            throw new RuntimeException("签名URL不能为空");
+        }
+        try {
+            return wxMpService.createJsapiSignature(url);
+        } catch (WxErrorException e) {
+            throw new RuntimeException("获取微信JS-SDK签名失败: " + e.getMessage(), e);
+        }
     }
 }

@@ -77,10 +77,18 @@ public class BirthdayRoleController {
                 data.put("membershipLevel", user.getMembershipLevel());
                 data.put("vipActive", user.getVipActive());
                 data.put("maxRoleCount", user.getMaxRoleCount());
+                data.put("inviteCode", user.getInviteCode());
+                data.put("inviteSuccessCount", user.getInviteSuccessCount());
+                data.put("inviteBonus", user.getInviteBonus());
+                data.put("invitedBy", user.getInvitedBy());
             } else {
                 data.put("membershipLevel", "FREE");
                 data.put("vipActive", false);
                 data.put("maxRoleCount", 3);
+                data.put("inviteCode", null);
+                data.put("inviteSuccessCount", 0);
+                data.put("inviteBonus", 0);
+                data.put("invitedBy", null);
             }
             data.put("currentCount", roles.size());
             return Result.success(data);

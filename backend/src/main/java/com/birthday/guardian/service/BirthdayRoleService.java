@@ -27,7 +27,7 @@ public class BirthdayRoleService {
         }
 
         MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
-        int maxRoles = level.getMaxRoleCount();
+        int maxRoles = userService.getMaxRoleCount(user);
 
         LambdaQueryWrapper<BirthdayRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BirthdayRole::getUserId, role.getUserId());
@@ -35,9 +35,9 @@ public class BirthdayRoleService {
 
         if (count >= maxRoles) {
             if (level.isVip()) {
-                throw new RuntimeException("亲爱的守护者，VIP会员目前可以温情守护最多 " + maxRoles + " 位亲友，更多名额扩展功能即将上线，敬请期待~");
+                throw new RuntimeException("亲爱的守护者，当前可温情守护最多 " + maxRoles + " 位亲友，更多名额扩展功能即将上线，敬请期待~");
             }
-            throw new RuntimeException("亲爱的守护者，温馨体验会员最多可守护 " + maxRoles + " 位亲友，升级为VIP即可照亮多达 20 位挚爱哦!");
+            throw new RuntimeException("亲爱的守护者，当前最多可守护 " + maxRoles + " 位亲友，继续完成推广任务或升级 VIP 可解锁更多名额哦~");
         }
 
         if (role.getRolePhone() != null && role.getRolePhone().trim().isEmpty()) {

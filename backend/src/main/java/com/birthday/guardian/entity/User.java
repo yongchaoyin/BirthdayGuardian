@@ -25,6 +25,12 @@ public class User {
 
     private LocalDateTime vipExpireTime; // VIP到期时间
 
+    private String inviteCode;
+
+    private Long invitedBy;
+
+    private Integer inviteSuccessCount;
+
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
@@ -36,4 +42,7 @@ public class User {
 
     @TableField(exist = false)
     private Boolean vipActive;
+
+    @TableField(exist = false)
+    private Integer inviteBonus;
 }

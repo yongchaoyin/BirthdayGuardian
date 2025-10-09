@@ -13,11 +13,16 @@ CREATE TABLE IF NOT EXISTS `user` (
   `role` VARCHAR(20) NOT NULL DEFAULT 'user' COMMENT '角色：admin-管理员，user-普通用户',
   `membership_level` VARCHAR(20) NOT NULL DEFAULT 'FREE' COMMENT '会员等级：FREE/VIP',
   `vip_expire_time` DATETIME DEFAULT NULL COMMENT 'VIP到期时间',
+  `invite_code` VARCHAR(20) NOT NULL COMMENT '推广码',
+  `invited_by` BIGINT DEFAULT NULL COMMENT '邀请人用户ID',
+  `invite_success_count` INT NOT NULL DEFAULT 0 COMMENT '成功邀请次数',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_username` (`username`),
-  UNIQUE KEY `uk_email` (`email`)
+  UNIQUE KEY `uk_email` (`email`),
+  UNIQUE KEY `uk_invite_code` (`invite_code`),
+  KEY `idx_invited_by` (`invited_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 -- 生日角色表

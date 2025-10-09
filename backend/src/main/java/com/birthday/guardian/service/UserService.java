@@ -13,7 +13,9 @@ import com.birthday.guardian.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
 @Service
@@ -23,6 +25,10 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    private static final String INVITE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private static final int INVITE_CODE_LENGTH = 6;
+    private static final SecureRandom INVITE_RANDOM = new SecureRandom();
 
     public void register(RegisterRequest request) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
@@ -37,6 +43,19 @@ public class UserService {
             throw new RuntimeException("邮箱已被注册");
         }
 
+        User inviter = null;
+        if (StringUtils.hasText(request.getInviteCode())) {
+            String trimmed = request.getInviteCode().trim().toUpperCase();
+            if (!trimmed.isEmpty()) {
+                LambdaQueryWrapper<User> inviteWrapper = new LambdaQueryWrapper<>();
+                inviteWrapper.eq(User::getInviteCode, trimmed);
+                inviter = userMapper.selectOne(inviteWrapper);
+                if (inviter == null) {
+                    throw new RuntimeException("推广码无效或已停用");
+                }
+            }
+        }
+
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
@@ -44,7 +63,19 @@ public class UserService {
         user.setRole("user");
         user.setMembershipLevel(MembershipLevel.FREE.name());
         user.setVipExpireTime(null);
+        user.setInviteSuccessCount(0);
+        user.setInviteCode(generateUniqueInviteCode());
+        if (inviter != null) {
+            user.setInvitedBy(inviter.getId());
+        }
+
         userMapper.insert(user);
+
+        if (inviter != null) {
+            int current = inviter.getInviteSuccessCount() == null ? 0 : inviter.getInviteSuccessCount();
+            inviter.setInviteSuccessCount(current + 1);
+            userMapper.updateById(inviter);
+        }
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -77,7 +108,8 @@ public class UserService {
         refreshMembershipStatus(user);
         fillTransientFields(user);
         MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
-        int maxRoleCount = level.getMaxRoleCount();
+        int maxRoleCount = user.getMaxRoleCount() != null ? user.getMaxRoleCount() : level.getMaxRoleCount();
+        int inviteBonus = user.getInviteSuccessCount() == null ? 0 : user.getInviteSuccessCount();
 
         LoginResponse response = new LoginResponse();
         response.setToken(jwtUtil.generateToken(user.getId()));
@@ -90,6 +122,9 @@ public class UserService {
         response.setVipExpireTime(user.getVipExpireTime());
         response.setMaxRoleCount(maxRoleCount);
         response.setVipActive(level.isVip());
+        response.setInviteCode(user.getInviteCode());
+        response.setInviteSuccessCount(inviteBonus);
+        response.setInviteBonus(inviteBonus);
 
         System.out.println("登录成功 - Token: " + response.getToken());
 
@@ -149,8 +184,12 @@ public class UserService {
     }
 
     public int getMaxRoleCount(User user) {
+        if (user == null) {
+            return MembershipLevel.FREE.getMaxRoleCount();
+        }
         MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
-        return level.getMaxRoleCount();
+        int inviteBonus = user.getInviteSuccessCount() == null ? 0 : user.getInviteSuccessCount();
+        return level.getMaxRoleCount() + inviteBonus;
     }
 
     public void updateMembership(Long userId, MembershipLevel level) {
@@ -217,8 +256,48 @@ public class UserService {
         if (user == null) {
             return;
         }
+
+        boolean updated = false;
+
+        if (user.getInviteSuccessCount() == null) {
+            user.setInviteSuccessCount(0);
+            updated = true;
+        }
+
+        if (!StringUtils.hasText(user.getInviteCode())) {
+            user.setInviteCode(generateUniqueInviteCode());
+            updated = true;
+        }
+
+        if (updated) {
+            userMapper.updateById(user);
+        }
+
         MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
-        user.setMaxRoleCount(level.getMaxRoleCount());
+        int inviteBonus = user.getInviteSuccessCount();
+        user.setMaxRoleCount(level.getMaxRoleCount() + inviteBonus);
         user.setVipActive(level.isVip());
+        user.setInviteBonus(inviteBonus);
+    }
+
+    private String generateUniqueInviteCode() {
+        for (int attempt = 0; attempt < 10; attempt++) {
+            String code = randomInviteCode();
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(User::getInviteCode, code);
+            if (userMapper.selectCount(wrapper) == 0) {
+                return code;
+            }
+        }
+        throw new RuntimeException("系统繁忙，请稍后再试");
+    }
+
+    private String randomInviteCode() {
+        StringBuilder builder = new StringBuilder(INVITE_CODE_LENGTH);
+        for (int i = 0; i < INVITE_CODE_LENGTH; i++) {
+            int index = INVITE_RANDOM.nextInt(INVITE_ALPHABET.length());
+            builder.append(INVITE_ALPHABET.charAt(index));
+        }
+        return builder.toString();
     }
 }

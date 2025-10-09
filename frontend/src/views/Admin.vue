@@ -87,9 +87,9 @@
         <input
           v-model="userSearch"
           placeholder="搜索用户名或邮箱"
-          @keyup.enter="loadUsers"
+          @keyup.enter="handleSearchUsers"
         />
-        <button @click="loadUsers">搜索</button>
+        <button @click="handleSearchUsers">搜索</button>
       </div>
 
       <div class="broadcast-panel">
@@ -148,69 +148,82 @@
         <div ref="notificationChart" class="trend-chart"></div>
       </div>
 
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>用户名</th>
-            <th>邮箱</th>
-            <th>手机号</th>
-            <th>角色</th>
-            <th>会员等级</th>
-            <th>可守护人数</th>
-            <th>VIP到期</th>
-            <th>注册时间</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="user in users" :key="user.id">
-            <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.phone || '—' }}</td>
-            <td>
-              <select
-                :value="user.role"
-                @change="changeUserRole(user.id, $event.target.value)"
-                :disabled="user.id === currentUserId"
-              >
-                <option value="user">普通用户</option>
-                <option value="admin">管理员</option>
-              </select>
-            </td>
-            <td>
-              <span :class="['membership-pill', user.vipActive ? 'vip' : 'free']">
-                {{ user.vipActive ? 'VIP守护者' : '温馨体验' }}
-              </span>
-            </td>
-            <td>{{ user.maxRoleCount || (user.vipActive ? 20 : 3) }}</td>
-            <td>{{ formatVipExpire(user.vipExpireTime) }}</td>
-            <td>{{ formatDate(user.createTime) }}</td>
-            <td>
-              <button
-                class="btn-secondary"
-                @click="changeUserMembership(user, user.vipActive ? 'FREE' : 'VIP')"
-                :disabled="membershipUpdatingId === user.id || user.id === currentUserId"
-              >
-                {{ user.vipActive ? '降为体验' : '设为VIP' }}
-              </button>
-              <button
-                @click="deleteUserConfirm(user.id)"
-                class="btn-danger"
-                :disabled="user.id === currentUserId"
-              >
-                删除
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-card">
+        <div class="table-card__header">
+          <h3>守护者列表</h3>
+          <p>查看并管理每一位守护者的权限与会员状态</p>
+        </div>
+        <div class="table-card__body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>邮箱</th>
+                <th>手机号</th>
+                <th>角色</th>
+                <th>会员等级</th>
+                <th>可守护人数</th>
+                <th>VIP到期</th>
+                <th>注册时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in users" :key="user.id">
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.phone || '—' }}</td>
+                <td>
+                  <select
+                    :value="user.role"
+                    @change="changeUserRole(user.id, $event.target.value)"
+                    :disabled="user.id === currentUserId"
+                  >
+                    <option value="user">普通用户</option>
+                    <option value="admin">管理员</option>
+                  </select>
+                </td>
+                <td>
+                  <span :class="['membership-pill', user.vipActive ? 'vip' : 'free']">
+                    {{ user.vipActive ? 'VIP守护者' : '温馨体验' }}
+                  </span>
+                </td>
+                <td>{{ user.maxRoleCount || (user.vipActive ? 20 : 3) }}</td>
+                <td>{{ formatVipExpire(user.vipExpireTime) }}</td>
+                <td>{{ formatDate(user.createTime) }}</td>
+                <td>
+                  <button
+                    class="btn-secondary"
+                    @click="changeUserMembership(user, user.vipActive ? 'FREE' : 'VIP')"
+                    :disabled="membershipUpdatingId === user.id || user.id === currentUserId"
+                  >
+                    {{ user.vipActive ? '降为体验' : '设为VIP' }}
+                  </button>
+                  <button
+                    @click="deleteUserConfirm(user.id)"
+                    class="btn-danger"
+                    :disabled="user.id === currentUserId"
+                  >
+                    删除
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      <div class="pagination">
-        <button @click="prevUserPage" :disabled="userPage === 1">上一页</button>
-        <span>第 {{ userPage }} 页</span>
-        <button @click="nextUserPage" :disabled="users.length < userPageSize">下一页</button>
+      <div class="table-pagination" v-if="userTotal > userPageSize">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :total="userTotal"
+          :page-size="userPageSize"
+          :current-page="userPage"
+          @current-change="handleUserPageChange"
+        />
       </div>
     </div>
 
@@ -218,38 +231,51 @@
     <div v-show="activeTab === 'announcements'" class="tab-content">
       <button @click="showCreateAnnouncementForm" class="btn-primary">发布新公告</button>
 
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>标题</th>
-            <th>状态</th>
-            <th>创建时间</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="announcement in announcements" :key="announcement.id">
-            <td>{{ announcement.id }}</td>
-            <td>{{ announcement.title }}</td>
-            <td>
-              <span :class="announcement.status === 1 ? 'status-active' : 'status-inactive'">
-                {{ announcement.status === 1 ? '启用' : '禁用' }}
-              </span>
-            </td>
-            <td>{{ formatDate(announcement.createTime) }}</td>
-            <td>
-              <button @click="editAnnouncement(announcement)" class="btn-edit">编辑</button>
-              <button @click="deleteAnnouncementConfirm(announcement.id)" class="btn-danger">删除</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-card">
+        <div class="table-card__header">
+          <h3>公告列表</h3>
+          <p>及时维护站内公告，向守护者传递最新信息</p>
+        </div>
+        <div class="table-card__body">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>标题</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="announcement in announcements" :key="announcement.id">
+                <td>{{ announcement.id }}</td>
+                <td>{{ announcement.title }}</td>
+                <td>
+                  <span :class="announcement.status === 1 ? 'status-active' : 'status-inactive'">
+                    {{ announcement.status === 1 ? '启用' : '禁用' }}
+                  </span>
+                </td>
+                <td>{{ formatDate(announcement.createTime) }}</td>
+                <td>
+                  <button @click="editAnnouncement(announcement)" class="btn-edit">编辑</button>
+                  <button @click="deleteAnnouncementConfirm(announcement.id)" class="btn-danger">删除</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-      <div class="pagination">
-        <button @click="prevAnnouncementPage" :disabled="announcementPage === 1">上一页</button>
-        <span>第 {{ announcementPage }} 页</span>
-        <button @click="nextAnnouncementPage" :disabled="announcements.length < announcementPageSize">下一页</button>
+      <div class="table-pagination" v-if="announcementTotal > announcementPageSize">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :total="announcementTotal"
+          :page-size="announcementPageSize"
+          :current-page="announcementPage"
+          @current-change="handleAnnouncementPageChange"
+        />
       </div>
     </div>
 
@@ -297,6 +323,7 @@ export default {
 
       // 用户管理
       users: [],
+      userTotal: 0,
       userPage: 1,
       userPageSize: 10,
       userSearch: '',
@@ -316,6 +343,7 @@ export default {
 
       // 公告管理
       announcements: [],
+      announcementTotal: 0,
       announcementPage: 1,
       announcementPageSize: 10,
       showAnnouncementForm: false,
@@ -373,12 +401,31 @@ export default {
           keyword: this.userSearch
         })
         if (res.code === 200) {
-          this.users = res.data.records
+          const payload = res.data || {}
+          const records = Array.isArray(payload.records) ? payload.records : Array.isArray(payload) ? payload : []
+          this.users = records
+          const total = payload.total
+          this.userTotal = typeof total === 'number' ? total : records.length
         }
       } catch (error) {
         console.error('加载用户列表失败:', error)
         alert('加载用户列表失败')
       }
+    },
+
+    handleUserPageChange(page) {
+      this.userPage = page
+      this.loadUsers()
+    },
+
+    handleSearchUsers() {
+      this.userPage = 1
+      this.loadUsers()
+    },
+
+    handleAnnouncementPageChange(page) {
+      this.announcementPage = page
+      this.loadAnnouncements()
     },
 
     async changeUserRole(userId, newRole) {
@@ -556,6 +603,9 @@ export default {
         const res = await deleteUser(userId)
         if (res.code === 200) {
           alert('用户删除成功')
+          if (this.users.length === 1 && this.userPage > 1) {
+            this.userPage--
+          }
           this.loadUsers()
           this.loadStats()
         }
@@ -565,18 +615,6 @@ export default {
       }
     },
 
-    prevUserPage() {
-      if (this.userPage > 1) {
-        this.userPage--
-        this.loadUsers()
-      }
-    },
-
-    nextUserPage() {
-      this.userPage++
-      this.loadUsers()
-    },
-
     async loadAnnouncements() {
       try {
         const res = await getAnnouncementList({
@@ -584,7 +622,10 @@ export default {
           pageSize: this.announcementPageSize
         })
         if (res.code === 200) {
-          this.announcements = res.data.records
+          const payload = res.data || {}
+          this.announcements = Array.isArray(payload.records) ? payload.records : []
+          const total = payload.total
+          this.announcementTotal = typeof total === 'number' ? total : this.announcements.length
         }
       } catch (error) {
         console.error('加载公告列表失败:', error)
@@ -644,24 +685,15 @@ export default {
         const res = await deleteAnnouncement(id)
         if (res.code === 200) {
           alert('公告删除成功')
+          if (this.announcements.length === 1 && this.announcementPage > 1) {
+            this.announcementPage--
+          }
           this.loadAnnouncements()
         }
       } catch (error) {
         console.error('删除公告失败:', error)
         alert('删除公告失败')
       }
-    },
-
-    prevAnnouncementPage() {
-      if (this.announcementPage > 1) {
-        this.announcementPage--
-        this.loadAnnouncements()
-      }
-    },
-
-    nextAnnouncementPage() {
-      this.announcementPage++
-      this.loadAnnouncements()
     },
 
     formatDate(dateStr) {
@@ -686,29 +718,49 @@ export default {
 
 <style scoped>
 .admin-container {
-  max-width: 1200px;
+  max-width: 1220px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 48px 32px 64px;
+  min-height: 100vh;
+  background: var(--bg-gradient);
 }
 
 .admin-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 36px;
+  padding: 20px 28px;
+  border-radius: 32px;
+  background: var(--surface-glass);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: var(--shadow-elevated);
+  backdrop-filter: blur(18px);
 }
 
 .admin-header h1 {
-  color: #333;
+  margin: 0;
+  font-size: 28px;
+  color: #2f1f1c;
+  font-family: var(--font-heading);
 }
 
 .logout-btn {
-  padding: 10px 20px;
-  background-color: #dc3545;
-  color: white;
+  padding: 12px 28px;
+  border-radius: var(--btn-radius);
   border: none;
-  border-radius: 4px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #ff9c95, #ff6f61);
+  box-shadow: 0 16px 32px rgba(255, 111, 97, 0.28);
   cursor: pointer;
+  transition: transform var(--transition-quick), box-shadow var(--transition-quick);
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 38px rgba(255, 111, 97, 0.34);
 }
 
 .stats-cards {
@@ -723,19 +775,20 @@ export default {
 }
 
 .stat-card {
-  background: #ffffff;
-  padding: 20px;
-  border-radius: 12px;
-  color: #333;
+  background: var(--surface-strong);
+  padding: 24px 20px;
+  border-radius: 28px;
+  color: #342724;
   text-align: center;
-  box-shadow: 0 10px 24px rgba(102, 126, 234, 0.12);
-  border: 1px solid rgba(102, 126, 234, 0.15);
+  box-shadow: 0 20px 42px rgba(132, 124, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(14px);
 }
 
 .stat-card.highlight {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgba(255, 224, 198, 0.92), rgba(240, 139, 103, 0.9));
   color: #fff;
-  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 24px 42px rgba(240, 139, 103, 0.32);
 }
 
 .stats-cards.secondary .stat-card {
@@ -745,7 +798,7 @@ export default {
 .stat-card h3 {
   margin: 0 0 10px 0;
   font-size: 16px;
-  font-weight: normal;
+  font-weight: 600;
 }
 
 .stat-number {
@@ -766,7 +819,7 @@ export default {
 }
 
 .stat-card:not(.highlight) .stat-sub {
-  color: #888;
+  color: rgba(98, 81, 75, 0.75);
 }
 
 .membership-pill {
@@ -784,85 +837,171 @@ export default {
 }
 
 .tabs {
-  display: flex;
-  border-bottom: 2px solid #e0e0e0;
-  margin-bottom: 20px;
+  display: inline-flex;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  margin-bottom: 24px;
+  box-shadow: 0 16px 32px rgba(168, 146, 255, 0.16);
 }
 
 .tab {
-  padding: 12px 24px;
-  background: none;
+  padding: 10px 24px;
+  background: transparent;
   border: none;
-  border-bottom: 3px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
-  font-size: 16px;
-  color: #666;
-  transition: all 0.3s;
+  font-size: 15px;
+  color: rgba(78, 60, 55, 0.7);
+  transition: all var(--transition-quick);
 }
 
 .tab.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
-  font-weight: bold;
+  background: rgba(255, 255, 255, 0.9);
+  color: #2f1f1c;
+  box-shadow: 0 10px 20px rgba(160, 150, 255, 0.18);
 }
 
 .tab-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  background: var(--surface-strong);
+  padding: 26px 28px;
+  border-radius: 32px;
+  box-shadow: 0 20px 42px rgba(176, 160, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  backdrop-filter: blur(14px);
 }
 
 .search-bar {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  box-shadow: 0 18px 34px rgba(173, 164, 255, 0.18);
+  backdrop-filter: blur(12px);
 }
 
 .search-bar input {
   flex: 1;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 18px;
+  border: 1px solid rgba(240, 139, 103, 0.22);
+  border-radius: 999px;
   font-size: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .search-bar button {
-  padding: 10px 20px;
-  background-color: #667eea;
-  color: white;
+  padding: 12px 26px;
   border: none;
-  border-radius: 4px;
+  border-radius: 999px;
   cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: var(--primary-gradient);
+  color: #fff;
+  box-shadow: 0 16px 32px rgba(240, 139, 103, 0.28);
+  transition: transform var(--transition-quick), box-shadow var(--transition-quick);
+}
+
+.search-bar button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(240, 139, 103, 0.34);
+}
+
+.search-bar input:focus {
+  outline: none;
+  border-color: rgba(240, 139, 103, 0.45);
+  box-shadow: 0 0 0 3px rgba(240, 139, 103, 0.18);
+}
+
+.table-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 18px 48px rgba(170, 152, 255, 0.22);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.table-card__header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid rgba(230, 225, 255, 0.7);
+}
+
+.table-card__header h3 {
+  margin: 0;
+  font-size: 20px;
+  color: #3f2f2b;
+}
+
+.table-card__header p {
+  margin: 8px 0 0;
+  color: rgba(93, 76, 71, 0.8);
+  font-size: 13px;
+}
+
+.table-card__body {
+  padding: 0 4px 4px;
+}
+
+.table-pagination {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.table-pagination :deep(.el-pagination.is-background .el-pager li) {
+  border-radius: 12px;
+  border: none;
+}
+
+.table-pagination :deep(.el-pagination.is-background .el-pager li.is-active) {
+  background-color: #f08b67;
 }
 
 .data-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: rgba(255, 255, 255, 0.95);
 }
 
 .data-table th,
 .data-table td {
-  padding: 12px;
+  padding: 14px 16px;
   text-align: left;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid rgba(230, 223, 255, 0.8);
 }
 
 .data-table th {
-  background-color: #f5f5f5;
-  font-weight: bold;
-  color: #333;
+  background: linear-gradient(135deg, rgba(247, 239, 255, 0.95), rgba(235, 248, 255, 0.9));
+  font-weight: 600;
+  color: #5a4a46;
+  border-bottom: 1px solid rgba(227, 221, 255, 0.9);
 }
 
-.data-table tr:hover {
-  background-color: #f9f9f9;
+.data-table tbody tr {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(250, 243, 255, 0.85);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(201, 186, 255, 0.24);
 }
 
 .data-table select {
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border: 1px solid rgba(214, 206, 255, 0.9);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .broadcast-panel {
@@ -902,37 +1041,41 @@ export default {
 }
 
 .btn-primary {
-  padding: 10px 20px;
-  background-color: #667eea;
+  padding: 12px 26px;
+  background: linear-gradient(135deg, #f08b67, #f5a178);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 999px;
   cursor: pointer;
   margin-bottom: 20px;
+  box-shadow: 0 16px 32px rgba(240, 139, 103, 0.24);
 }
 
 .btn-edit {
-  padding: 6px 12px;
-  background-color: #ffc107;
-  color: white;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #ffd56a, #ffc043);
+  color: #4a362f;
   border: none;
-  border-radius: 4px;
+  border-radius: 999px;
   cursor: pointer;
-  margin-right: 5px;
+  margin-right: 8px;
+  box-shadow: 0 10px 20px rgba(255, 192, 67, 0.24);
 }
 
 .btn-danger {
-  padding: 6px 12px;
-  background-color: #dc3545;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #ff6b6b, #ff8787);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 999px;
   cursor: pointer;
+  box-shadow: 0 12px 24px rgba(255, 107, 107, 0.25);
 }
 
 .btn-danger:disabled {
-  background-color: #ccc;
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.5), rgba(255, 135, 135, 0.5));
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .status-active {
@@ -943,28 +1086,6 @@ export default {
 .status-inactive {
   color: #dc3545;
   font-weight: bold;
-}
-
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.pagination button {
-  padding: 8px 16px;
-  background-color: #667eea;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.pagination button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
 }
 
 /* 弹窗样式 */
@@ -996,6 +1117,7 @@ export default {
   color: #333;
 }
 
+
 .form-group {
   margin-bottom: 20px;
 }
@@ -1003,19 +1125,29 @@ export default {
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #3b2a26;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border: 1px solid rgba(240, 139, 103, 0.22);
+  border-radius: 18px;
   font-size: 14px;
   box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.9);
+  transition: border-color var(--transition-quick), box-shadow var(--transition-quick);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: rgba(240, 139, 103, 0.45);
+  box-shadow: 0 0 0 3px rgba(240, 139, 103, 0.16);
 }
 
 .form-actions {
@@ -1025,11 +1157,20 @@ export default {
 }
 
 .btn-secondary {
-  padding: 10px 20px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
+  padding: 12px 26px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #3d2a26;
+  border: 1px solid rgba(240, 139, 103, 0.28);
+  border-radius: 999px;
   cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 16px 32px rgba(160, 150, 255, 0.18);
+  transition: transform var(--transition-quick), box-shadow var(--transition-quick);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 20px 36px rgba(160, 150, 255, 0.26);
 }
 </style>

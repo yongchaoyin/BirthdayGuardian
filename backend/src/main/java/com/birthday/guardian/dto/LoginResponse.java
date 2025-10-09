@@ -16,4 +16,7 @@ public class LoginResponse {
     private LocalDateTime vipExpireTime;
     private Integer maxRoleCount;
     private Boolean vipActive;
+    private String inviteCode;
+    private Integer inviteSuccessCount;
+    private Integer inviteBonus;
 }

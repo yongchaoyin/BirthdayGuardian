@@ -41,6 +41,13 @@
             <version>4.5.0</version>
         </dependency>
 
+        <!-- SMS4J -->
+        <dependency>
+            <groupId>org.dromara.sms4j</groupId>
+            <artifactId>sms4j-spring-boot-starter</artifactId>
+            <version>3.3.5</version>
+        </dependency>
+
         <!-- MyBatis Plus -->
         <dependency>
             <groupId>com.baomidou</groupId>

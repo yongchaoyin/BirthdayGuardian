@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { isMobileDevice } from '../utils/ua'
 
 const routes = [
   {
@@ -22,6 +23,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/h5',
+    name: 'MobileHome',
+    component: () => import('../views/MobileHome.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: () => import('../views/Profile.vue'),
@@ -41,6 +48,16 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  if (isMobileDevice()) {
+    if (to.name === 'Home') {
+      next({ name: 'MobileHome', replace: true, query: to.query })
+      return
+    }
+  } else if (to.name === 'MobileHome') {
+    next({ name: 'Home', replace: true, query: to.query })
+    return
+  }
+
   const token = localStorage.getItem('token')
   const userInfo = localStorage.getItem('userInfo')
   const user = userInfo ? JSON.parse(userInfo) : null
