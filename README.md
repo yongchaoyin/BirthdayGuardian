@@ -5,13 +5,31 @@
 ## 功能特性
 
 - ✅ 用户注册和登录（支持邮箱和用户名登录）
-- ✅ 生日角色管理（每个用户最多添加20个角色）
+- ✅ 生日角色管理（温馨体验可添加3位，VIP可添加20位守护对象）
 - ✅ 支持阳历和阴历生日
 - ✅ 自动阴阳历转换
 - ✅ 自定义提前提醒天数
-- ✅ 邮件提醒功能
+- ✅ 邮件提醒功能（暖心文案提醒）
+- ✅ 生日当天短信祝福（VIP专享，依据角色备注与电话发送）
 - ✅ 每年自动提醒
 - ✅ Docker一键部署
+- ✅ 会员制度与VIP一年有效期管理
+- ✅ 管理后台仪表盘（生日统计、邮件/短信发送统计、会员升级）
+- ✅ 管理端通知趋势折线报表（邮件/短信发送量一目了然）
+- ✅ 个人中心可修改用户名、邮箱、手机号与密码
+- ✅ 微信公众号绑定与模板消息提醒（支持H5/小程序授权）
+
+## 会员制度与守护名额
+
+| 会员等级 | 守护名额 | 特权内容 |
+| --- | --- | --- |
+| 温馨体验 | 3 位亲友 | 基础邮件提醒、公告通知 |
+| VIP守护礼遇 | 20 位亲友 | 暖心邮件提醒、生日当天短信祝福（需填写角色电话）、到期自动续签提示 |
+
+- VIP有效期为一年，管理员可以在后台为用户升级或降级会员身份。
+- 会员到期后系统会自动恢复为温馨体验计划，保留已创建的守护对象。
+- 为角色补充电话可获得生日当天短信祝福（VIP 专享）。
+- 升级 / 续订 VIP？请邮件联系站主：`yinyc0925@outlook.com`。
 
 ## 技术栈
 
@@ -251,9 +269,11 @@ BirthdayGuardian-1/
   "birthDate": "1970-01-01",
   "calendarType": 1,
   "remindDays": 3,
+  "rolePhone": "13800138000",
   "remark": "记得准备礼物"
 }
 ```
+- 说明：`rolePhone` 可选；VIP 用户填写后将在生日当天自动发送备注短信给该联系人。
 
 #### 更新角色
 - **PUT** `/api/roles/{id}`
@@ -263,13 +283,82 @@ BirthdayGuardian-1/
 - **DELETE** `/api/roles/{id}`
 - Headers: `Authorization: Bearer {token}`
 
+### 用户资料接口（需要认证）
+
+#### 更新手机号
+- **POST** `/api/user/update-phone`
+- Headers: `Authorization: Bearer {token}`
+- Body:
+```json
+{
+  "phone": "13800138000"
+}
+```
+
+#### 更新用户名
+- **POST** `/api/user/update-username`
+- Headers: `Authorization: Bearer {token}`
+- Body:
+```json
+{
+  "username": "newName"
+}
+```
+
+> 个人中心还支持修改邮箱与密码（接口：`/api/user/update-email`、`/api/user/change-password`）。
+
+### 管理员通知接口（需要管理员权限）
+
+#### 群发邮件
+- **POST** `/api/admin/notifications/email`
+- Body:
+```json
+{
+  "subject": "系统维护提醒",
+  "content": "亲爱的守护者，今晚23点将进行维护。"
+}
+```
+
+#### 群发短信
+- **POST** `/api/admin/notifications/sms`
+- Body:
+```json
+{
+  "content": "生日守护者温馨提示：今晚系统更新，如有疑问请联系管理员。"
+}
+```
+
+> 邮件会发送至所有填写邮箱的用户，短信将发送至所有已填写手机号的用户。
+
+### 微信公众号接口
+
+#### 获取OAuth授权链接
+- **GET** `/api/wechat/oauth-url`
+- Params:
+  - `redirect`（可选）：授权完成后的跳转地址
+  - `state`（可选）：自定义状态字符串
+
+#### 绑定微信账号（登录用户）
+- **POST** `/api/wechat/bind`
+- Headers: `Authorization: Bearer {token}`
+- Body:
+```json
+{
+  "code": "微信OAuth返回的code"
+}
+```
+- 说明：前端在 H5/小程序授权后，将 `code` 回传即可完成绑定。
+
 ## 数据库表结构
 
 ### 用户表（user）
 - id: 主键
 - username: 用户名（唯一）
 - email: 邮箱（唯一）
+- phone: 联系电话
 - password: 密码（MD5加密）
+- membership_level: 会员等级（FREE/VIP）
+- vip_expire_time: VIP到期时间（为空表示未开启或已到期）
 - create_time: 创建时间
 - update_time: 更新时间
 
@@ -282,9 +371,32 @@ BirthdayGuardian-1/
 - calendar_type: 日历类型（1-阳历，2-阴历）
 - lunar_birth_date: 阴历生日
 - remind_days: 提前提醒天数
+- role_phone: 角色电话
 - remark: 备注
 - create_time: 创建时间
 - update_time: 更新时间
+
+### 通知日志表（notification_log）
+- id: 主键
+- user_id: 用户ID
+- role_id: 生日角色ID
+- channel: 通知渠道（EMAIL/SMS/WECHAT）
+- status: 发送状态（SUCCESS/FAILURE）
+- title: 通知标题
+- content_preview: 通知内容预览
+- event_date: 关联事件日期（生日）
+- send_time: 发送时间
+
+### 微信绑定表（user_wechat）
+- id: 主键
+- user_id: 用户ID
+- openid: 微信 openid
+- unionid: 微信 unionid（如有）
+- session_key: 会话凭证
+- nickname: 微信昵称
+- avatar: 头像地址
+- subscribe: 是否关注公众号
+- bind_time / update_time: 绑定与更新时间
 
 ## 定时任务
 
@@ -308,6 +420,14 @@ SPRING_MAIL_PORT=587
 SPRING_MAIL_USERNAME=your-email@gmail.com
 SPRING_MAIL_PASSWORD=your-app-password
 
+# 微信公众号配置
+WECHAT_MP_APP_ID=your-wechat-appid
+WECHAT_MP_SECRET=your-wechat-secret
+WECHAT_MP_TOKEN=your-wechat-token
+WECHAT_MP_AES_KEY=your-wechat-aes-key
+WECHAT_MP_BIRTHDAY_TEMPLATE_ID=your-template-id
+WECHAT_MP_REMINDER_URL=https://your-h5.domain/redirect
+
 # JWT配置
 JWT_SECRET=your-secret-key
 JWT_EXPIRATION=86400000
@@ -318,6 +438,12 @@ SCHEDULE_CHECK_TIME=0 0 9 * * ?
 # 时区
 TZ=Asia/Shanghai
 ```
+
+## 微信公众号对接指引
+
+1. 在微信公众平台配置服务器地址、Token、EncodingAESKey，并将 `wechat.mp.*` 参数写入 `.env` 或环境变量。
+2. 前端（公众号 H5 或小程序）调用 `/api/wechat/oauth-url` 获取授权链接，或自行完成 OAuth 授权后将 `code` 传给 `/api/wechat/bind` 完成账号绑定。
+3. 绑定成功后，系统会在生日提醒与后台群发时，通过模板消息给用户发送通知，同时在通知趋势折线图中统计微信发送量。
 
 ## 常见问题
 

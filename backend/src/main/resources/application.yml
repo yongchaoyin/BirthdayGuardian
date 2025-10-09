@@ -32,3 +32,13 @@ jwt:
 # 定时任务配置
 schedule:
   check-time: ${SCHEDULE_CHECK_TIME:0 0 9 * * ?}
+
+# 微信公众号配置
+wechat:
+  mp:
+    app-id: ${WECHAT_MP_APP_ID:}
+    secret: ${WECHAT_MP_SECRET:}
+    token: ${WECHAT_MP_TOKEN:}
+    aes-key: ${WECHAT_MP_AES_KEY:}
+    birthday-template-id: ${WECHAT_MP_BIRTHDAY_TEMPLATE_ID:}
+    reminder-url: ${WECHAT_MP_REMINDER_URL:}

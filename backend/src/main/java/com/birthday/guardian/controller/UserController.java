@@ -3,6 +3,8 @@ package com.birthday.guardian.controller;
 import com.birthday.guardian.common.Result;
 import com.birthday.guardian.dto.ChangePasswordRequest;
 import com.birthday.guardian.dto.UpdateEmailRequest;
+import com.birthday.guardian.dto.UpdatePhoneRequest;
+import com.birthday.guardian.dto.UpdateUsernameRequest;
 import com.birthday.guardian.entity.User;
 import com.birthday.guardian.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +65,30 @@ public class UserController {
         } catch (Exception e) {
             System.err.println("修改邮箱失败: " + e.getMessage());
             e.printStackTrace();
+            return Result.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/update-phone")
+    public Result<Void> updatePhone(@Validated @RequestBody UpdatePhoneRequest request,
+                                    HttpServletRequest httpRequest) {
+        try {
+            Long userId = (Long) httpRequest.getAttribute("userId");
+            userService.updatePhone(userId, request.getPhone());
+            return Result.success();
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/update-username")
+    public Result<Void> updateUsername(@Validated @RequestBody UpdateUsernameRequest request,
+                                       HttpServletRequest httpRequest) {
+        try {
+            Long userId = (Long) httpRequest.getAttribute("userId");
+            userService.updateUsername(userId, request.getUsername());
+            return Result.success();
+        } catch (Exception e) {
             return Result.error(e.getMessage());
         }
     }

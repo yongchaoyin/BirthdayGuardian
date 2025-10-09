@@ -1,5 +1,5 @@
 # 第一阶段：构建前端
-FROM node:20-alpine3.18 AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /frontend
 
@@ -11,7 +11,7 @@ COPY frontend .
 RUN npm run build
 
 # 第二阶段：构建后端
-FROM maven:3.8.5-openjdk-17 AS backend-builder
+FROM maven:3.8.6-eclipse-temurin-17 AS backend-builder
 
 WORKDIR /app
 

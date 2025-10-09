@@ -25,6 +25,8 @@ public class BirthdayRole {
 
     private Integer remindDays;
 
+    private String rolePhone;
+
     private String remark;
 
     @TableField(fill = FieldFill.INSERT)

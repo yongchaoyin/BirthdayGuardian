@@ -31,13 +31,16 @@ public class TestController {
                 return Result.error("收件人邮箱不能为空");
             }
 
-            String result = emailService.sendEmail(
+            boolean success = emailService.sendEmail(
                 to,
                 "生日守护者系统 - 测试邮件",
                 "这是一封测试邮件，如果您收到此邮件，说明邮件配置成功！"
             );
 
-            return Result.success(result);
+            if (success) {
+                return Result.success("邮件发送成功");
+            }
+            return Result.error(500, "邮件发送失败，请检查邮箱配置");
         } catch (Exception e) {
             return Result.error("发送失败: " + e.getMessage());
         }

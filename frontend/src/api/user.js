@@ -22,3 +22,19 @@ export function updateEmail(data) {
     data
   })
 }
+
+export function updatePhone(data) {
+  return request({
+    url: '/user/update-phone',
+    method: 'post',
+    data
+  })
+}
+
+export function updateUsername(data) {
+  return request({
+    url: '/user/update-username',
+    method: 'post',
+    data
+  })
+}

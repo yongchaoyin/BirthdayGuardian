@@ -452,3 +452,36 @@ JDBC Connection [HikariProxyConnection@2090093775 wrapping com.mysql.cj.jdbc.Con
 <==      Total: 1
 Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@7253acf5]
 开始检查生日提醒，当前日期: 2025-10-08
+Creating a new SqlSession
+SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@316b3c73] was not registered for synchronization because synchronization is not active
+JDBC Connection [HikariProxyConnection@1506279556 wrapping com.mysql.cj.jdbc.ConnectionImpl@44f2d8b] will not be managed by Spring
+==>  Preparing: SELECT id,user_id,role_type,role_name,birth_date,calendar_type,lunar_birth_date,remind_days,remark,create_time,update_time FROM birthday_role
+==> Parameters: 
+<==    Columns: id, user_id, role_type, role_name, birth_date, calendar_type, lunar_birth_date, remind_days, remark, create_time, update_time
+<==        Row: 1, 1, 父亲, 父亲, 2000-06-08, 2, 2000-06-08, 4, 测试工单, 2025-10-07 16:08:29, 2025-10-07 16:08:29
+<==      Total: 1
+Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@316b3c73]
+开始检查生日提醒，当前日期: 2025-10-09
+2025-10-09 10:47:41.546  WARN 8944 --- [ionShutdownHook] o.s.c.support.DefaultLifecycleProcessor  : Failed to stop bean 'webServerGracefulShutdown'
+
+java.lang.NoClassDefFoundError: org/springframework/boot/web/server/GracefulShutdownCallback
+	at org.springframework.boot.web.context.WebServerGracefulShutdownLifecycle.stop(WebServerGracefulShutdownLifecycle.java:62) ~[spring-boot-2.7.14.jar!/:2.7.14]
+	at org.springframework.context.support.DefaultLifecycleProcessor.doStop(DefaultLifecycleProcessor.java:235) ~[spring-context-5.3.29.jar!/:5.3.29]
+	at org.springframework.context.support.DefaultLifecycleProcessor.access$300(DefaultLifecycleProcessor.java:54) ~[spring-context-5.3.29.jar!/:5.3.29]
+	at org.springframework.context.support.DefaultLifecycleProcessor$LifecycleGroup.stop(DefaultLifecycleProcessor.java:374) ~[spring-context-5.3.29.jar!/:5.3.29]
+	at org.springframework.context.support.DefaultLifecycleProcessor.stopBeans(DefaultLifecycleProcessor.java:207) ~[spring-context-5.3.29.jar!/:5.3.29]
+	at org.springframework.context.support.DefaultLifecycleProcessor.onClose(DefaultLifecycleProcessor.java:130) ~[spring-context-5.3.29.jar!/:5.3.29]
+	at org.springframework.context.support.AbstractApplicationContext.doClose(AbstractApplicationContext.java:1070) ~[spring-context-5.3.29.jar!/:5.3.29]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.doClose(ServletWebServerApplicationContext.java:174) ~[spring-boot-2.7.14.jar!/:2.7.14]
+	at org.springframework.context.support.AbstractApplicationContext.close(AbstractApplicationContext.java:1024) ~[spring-context-5.3.29.jar!/:5.3.29]
+	at org.springframework.boot.SpringApplicationShutdownHook.closeAndWait(SpringApplicationShutdownHook.java:145) ~[spring-boot-2.7.14.jar!/:2.7.14]
+	at java.base/java.lang.Iterable.forEach(Iterable.java:75) ~[na:na]
+	at org.springframework.boot.SpringApplicationShutdownHook.run(SpringApplicationShutdownHook.java:114) ~[spring-boot-2.7.14.jar!/:2.7.14]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+Caused by: java.lang.ClassNotFoundException: org.springframework.boot.web.server.GracefulShutdownCallback
+	at java.base/java.net.URLClassLoader.findClass(URLClassLoader.java:445) ~[na:na]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:593) ~[na:na]
+	at org.springframework.boot.loader.LaunchedURLClassLoader.loadClass(LaunchedURLClassLoader.java:151) ~[guardian-1.0.0.jar:1.0.0]
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:526) ~[na:na]
+	... 13 common frames omitted
+

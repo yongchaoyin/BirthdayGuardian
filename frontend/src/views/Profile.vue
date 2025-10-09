@@ -27,6 +27,45 @@
                   <label>邮箱：</label>
                   <span>{{ userInfo.email }}</span>
                 </div>
+                <div class="info-item">
+                  <label>手机号：</label>
+                  <span>{{ userInfo.phone || '未填写' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>会员等级：</label>
+                  <span :class="['membership-tag', userInfo.vipActive ? 'vip' : 'free']">{{ membershipLabel }}</span>
+                </div>
+                <div class="info-item">
+                  <label>守护名额：</label>
+                  <span>{{ userInfo.maxRoleCount || (userInfo.vipActive ? 20 : 3) }} 位亲友</span>
+                </div>
+                <div class="info-item">
+                  <label>VIP到期：</label>
+                  <span>{{ vipExpireDisplay }}</span>
+                </div>
+                <p class="membership-tip">
+                  温馨提示：VIP有效期一年，若到期我们会自动切换至温馨体验计划，您可随时联系管理员续订。
+                </p>
+                <p class="membership-tip contact">
+                  开通或续订 VIP？请邮件联系站主：<a href="mailto:yinyc0925@outlook.com" target="_blank">yinyc0925@outlook.com</a>
+                </p>
+                <el-divider />
+                <el-form ref="usernameFormRef" :model="usernameForm" :rules="usernameRules" label-width="80px" class="inline-form">
+                  <el-form-item label="用户名" prop="username">
+                    <el-input v-model="usernameForm.username" />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="handleUpdateUsername" :loading="usernameLoading">保存用户名</el-button>
+                  </el-form-item>
+                </el-form>
+                <el-form ref="phoneFormRef" :model="phoneForm" :rules="phoneRules" label-width="80px" class="inline-form">
+                  <el-form-item label="手机号" prop="phone">
+                    <el-input v-model="phoneForm.phone" placeholder="用于接收通知及短信" />
+                  </el-form-item>
+                  <el-form-item>
+                    <el-button type="primary" @click="handleUpdatePhone" :loading="phoneLoading">保存手机号</el-button>
+                  </el-form-item>
+                </el-form>
               </div>
             </el-card>
           </el-col>
@@ -87,17 +126,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getUserInfo, changePassword, updateEmail } from '../api/user'
+import { getUserInfo, changePassword, updateEmail, updatePhone, updateUsername } from '../api/user'
 
 const router = useRouter()
 const userInfo = ref({})
 const passwordFormRef = ref(null)
 const emailFormRef = ref(null)
+const usernameFormRef = ref(null)
+const phoneFormRef = ref(null)
 const passwordLoading = ref(false)
 const emailLoading = ref(false)
+const usernameLoading = ref(false)
+const phoneLoading = ref(false)
 
 const passwordForm = reactive({
   oldPassword: '',
@@ -108,6 +151,14 @@ const passwordForm = reactive({
 const emailForm = reactive({
   email: '',
   password: ''
+})
+
+const usernameForm = reactive({
+  username: ''
+})
+
+const phoneForm = reactive({
+  phone: ''
 })
 
 const validateConfirmPassword = (rule, value, callback) => {
@@ -143,14 +194,74 @@ const emailRules = {
   ]
 }
 
+const usernameRules = {
+  username: [
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 3, max: 20, message: '用户名长度在3-20之间', trigger: 'blur' }
+  ]
+}
+
+const phoneRules = {
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' }
+  ]
+}
+
 const loadUserInfo = async () => {
   try {
     const res = await getUserInfo()
     userInfo.value = res.data
     // 同时更新localStorage中的用户信息
     localStorage.setItem('userInfo', JSON.stringify(res.data))
+    usernameForm.username = res.data.username || ''
+    phoneForm.phone = res.data.phone || ''
   } catch (error) {
     ElMessage.error('获取用户信息失败')
+  }
+}
+
+const membershipLabel = computed(() => (userInfo.value.vipActive ? 'VIP守护礼遇' : '温馨体验计划'))
+
+const vipExpireDisplay = computed(() => {
+  if (!userInfo.value.vipExpireTime) {
+    return '—'
+  }
+  return new Date(userInfo.value.vipExpireTime).toLocaleString('zh-CN')
+})
+
+const handleUpdateUsername = async () => {
+  try {
+    await usernameFormRef.value.validate()
+    usernameLoading.value = true
+    await updateUsername({ username: usernameForm.username })
+    ElMessage.success('用户名更新成功')
+    await loadUserInfo()
+  } catch (error) {
+    if (error?.response) {
+      ElMessage.error(error.response.data.message || '更新用户名失败')
+    } else if (error?.message) {
+      ElMessage.error(error.message)
+    }
+  } finally {
+    usernameLoading.value = false
+  }
+}
+
+const handleUpdatePhone = async () => {
+  try {
+    await phoneFormRef.value.validate()
+    phoneLoading.value = true
+    await updatePhone({ phone: phoneForm.phone })
+    ElMessage.success('手机号更新成功')
+    await loadUserInfo()
+  } catch (error) {
+    if (error?.response) {
+      ElMessage.error(error.response.data.message || '更新手机号失败')
+    } else if (error?.message) {
+      ElMessage.error(error.message)
+    }
+  } finally {
+    phoneLoading.value = false
   }
 }
 
@@ -257,5 +368,43 @@ onMounted(() => {
 
 .info-item span {
   color: #303133;
+}
+
+.membership-tag {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  display: inline-block;
+  background: #f0f4ff;
+  color: #5468ff;
+}
+
+.membership-tag.vip {
+  background: #fff3e0;
+  color: #ff8c42;
+}
+
+.membership-tag.free {
+  background: #eef7ff;
+  color: #409eff;
+}
+
+.membership-tip {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.6;
+}
+
+.membership-tip.contact a {
+  color: #409eff;
+}
+
+.inline-form {
+  margin-top: 10px;
+}
+
+.inline-form .el-form-item {
+  margin-bottom: 10px;
 }
 </style>

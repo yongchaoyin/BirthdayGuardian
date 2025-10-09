@@ -1,7 +1,9 @@
 package com.birthday.guardian.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.birthday.guardian.common.MembershipLevel;
 import com.birthday.guardian.entity.BirthdayRole;
+import com.birthday.guardian.entity.User;
 import com.birthday.guardian.mapper.BirthdayRoleMapper;
 import com.birthday.guardian.util.LunarUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +17,31 @@ public class BirthdayRoleService {
     @Autowired
     private BirthdayRoleMapper birthdayRoleMapper;
 
+    @Autowired
+    private UserService userService;
+
     public void addRole(BirthdayRole role) {
+        User user = userService.getUserById(role.getUserId());
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
+        int maxRoles = level.getMaxRoleCount();
+
         LambdaQueryWrapper<BirthdayRole> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BirthdayRole::getUserId, role.getUserId());
         long count = birthdayRoleMapper.selectCount(wrapper);
 
-        if (count >= 20) {
-            throw new RuntimeException("每个用户最多只能添加20个角色");
+        if (count >= maxRoles) {
+            if (level.isVip()) {
+                throw new RuntimeException("亲爱的守护者，VIP会员目前可以温情守护最多 " + maxRoles + " 位亲友，更多名额扩展功能即将上线，敬请期待~");
+            }
+            throw new RuntimeException("亲爱的守护者，温馨体验会员最多可守护 " + maxRoles + " 位亲友，升级为VIP即可照亮多达 20 位挚爱哦!");
+        }
+
+        if (role.getRolePhone() != null && role.getRolePhone().trim().isEmpty()) {
+            role.setRolePhone(null);
         }
 
         if (role.getCalendarType() == 1) {
@@ -59,6 +79,10 @@ public class BirthdayRoleService {
                 role.getBirthDate().getYear(),
                 role.getBirthDate().getMonthValue(),
                 role.getBirthDate().getDayOfMonth()));
+        }
+
+        if (role.getRolePhone() != null && role.getRolePhone().trim().isEmpty()) {
+            role.setRolePhone(null);
         }
 
         birthdayRoleMapper.updateById(role);

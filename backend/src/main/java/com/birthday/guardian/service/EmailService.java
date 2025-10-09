@@ -1,8 +1,10 @@
 package com.birthday.guardian.service;
 
+import com.birthday.guardian.common.MembershipLevel;
 import com.birthday.guardian.entity.BirthdayRole;
+import com.birthday.guardian.entity.NotificationLog;
 import com.birthday.guardian.entity.User;
-import com.birthday.guardian.util.LunarUtil;
+import com.birthday.guardian.util.BirthdayDateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
@@ -14,6 +16,7 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Properties;
 
@@ -21,6 +24,8 @@ import java.util.Properties;
 public class EmailService implements ApplicationRunner {
 
     private Session session = null;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy年MM月dd日");
 
     @Value("${spring.mail.username}")
     private String username;
@@ -39,6 +44,15 @@ public class EmailService implements ApplicationRunner {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private NotificationLogService notificationLogService;
+
+    @Autowired
+    private SmsService smsService;
+
+    @Autowired
+    private WeChatTemplateService weChatTemplateService;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
@@ -66,7 +80,7 @@ public class EmailService implements ApplicationRunner {
         System.out.println("邮件服务配置完成: " + host + ":" + port);
     }
 
-    public String sendEmail(String to, String subject, String body) {
+    public boolean sendEmail(String to, String subject, String body) {
         try {
             // 创建邮件消息
             Message message = new MimeMessage(session);
@@ -78,11 +92,11 @@ public class EmailService implements ApplicationRunner {
             // 发送邮件
             Transport.send(message);
             System.out.println("邮件发送成功！收件人: " + to);
-            return "邮件发送成功！";
+            return true;
         } catch (MessagingException e) {
             e.printStackTrace();
             System.out.println("邮件发送失败！");
-            return "邮件发送失败！";
+            return false;
         }
     }
 
@@ -100,53 +114,75 @@ public class EmailService implements ApplicationRunner {
 
         for (BirthdayRole role : allRoles) {
             try {
-                LocalDate birthdayThisYear;
-
-                if (role.getCalendarType() == 1) {
-                    // 阳历生日
-                    birthdayThisYear = LocalDate.of(
-                        today.getYear(),
-                        role.getBirthDate().getMonth(),
-                        role.getBirthDate().getDayOfMonth()
-                    );
-                } else {
-                    // 阴历生日，需要转换为阳历
-                    String[] parts = role.getLunarBirthDate().split("-");
-                    int lunarMonth = Integer.parseInt(parts[1]);
-                    int lunarDay = Integer.parseInt(parts[2]);
-
-                    birthdayThisYear = LunarUtil.lunarToSolar(today.getYear(), lunarMonth, lunarDay);
-                }
-
-                long daysUntilBirthday = java.time.temporal.ChronoUnit.DAYS.between(today, birthdayThisYear);
+                LocalDate upcomingBirthday = BirthdayDateUtil.resolveUpcomingBirthday(role, today);
+                long daysUntilBirthday = java.time.temporal.ChronoUnit.DAYS.between(today, upcomingBirthday);
 
                 if (daysUntilBirthday == role.getRemindDays()) {
                     User user = userService.getUserById(role.getUserId());
                     if (user != null) {
-                        String subject = "生日提醒 - " + role.getRoleName();
-                        String content = String.format(
-                            "亲爱的 %s，\n\n" +
-                            "这是一个友好的提醒：\n" +
-                            "%s（%s）的生日将在 %d 天后（%s）到来。\n\n" +
-                            "出生日期：%s\n" +
-                            "备注：%s\n\n" +
-                            "别忘了准备礼物哦！\n\n" +
-                            "生日守护者系统",
-                            user.getUsername(),
-                            role.getRoleName(),
-                            role.getRoleType(),
-                            role.getRemindDays(),
-                            birthdayThisYear,
-                            role.getBirthDate(),
-                            role.getRemark() != null ? role.getRemark() : "无"
-                        );
+                        String subject = "🎂 温馨提醒：" + role.getRoleName() + "的生日小期待";
+                        String content = buildWarmEmailBody(user, role, upcomingBirthday, daysUntilBirthday);
 
-                        sendEmail(user.getEmail(), subject, content);
+                        boolean success = sendEmail(user.getEmail(), subject, content);
+
+                        NotificationLog log = new NotificationLog();
+                        log.setUserId(user.getId());
+                        log.setRoleId(role.getId());
+                        log.setChannel("EMAIL");
+                        log.setStatus(success ? "SUCCESS" : "FAILURE");
+                        log.setTitle(subject);
+                        log.setContentPreview(content.length() > 480 ? content.substring(0, 480) : content);
+                        log.setEventDate(upcomingBirthday);
+                        notificationLogService.recordNotification(log);
+
+                        weChatTemplateService.sendBirthdayReminder(user, role, upcomingBirthday, daysUntilBirthday);
+                    }
+                }
+
+                if (daysUntilBirthday == 0 && role.getRolePhone() != null && !role.getRolePhone().trim().isEmpty()) {
+                    User user = userService.getUserById(role.getUserId());
+                    if (user != null) {
+                        MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
+                        if (level.isVip()) {
+                            String smsContent = buildSmsContent(user, role, upcomingBirthday);
+                            smsService.sendSms(role.getRolePhone(), smsContent, user.getId(), role.getId(), upcomingBirthday);
+                        }
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private String buildWarmEmailBody(User user, BirthdayRole role, LocalDate upcomingBirthday, long daysUntilBirthday) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("亲爱的 ").append(user.getUsername()).append("，\n\n");
+        builder.append("感谢你把这些珍贵的关系托付给我们。\n");
+        builder.append(role.getRoleName()).append("（").append(role.getRoleType()).append("）将在 ")
+                .append(daysUntilBirthday)
+                .append(" 天后，也就是 ")
+                .append(DATE_FORMATTER.format(upcomingBirthday))
+                .append(" 收到来自你的温暖祝福。\n\n");
+        builder.append("贴心提示：");
+        if (role.getRemark() != null && !role.getRemark().isEmpty()) {
+            builder.append(role.getRemark());
+        } else {
+            builder.append("也许可以准备一张手写卡片、一个电话，或是一份小惊喜，让这份牵挂更有温度。");
+        }
+        builder.append("\n\n");
+        builder.append("出生日期：").append(role.getBirthDate()).append("\n");
+        builder.append("提醒设置：提前 ").append(role.getRemindDays()).append(" 天提醒\n\n");
+        builder.append("无论距离远近，心意都不会迟到。生日守护者会一直陪你守护每个重要的感动时刻。\n\n");
+        builder.append("— 生日守护者 · 温暖每一个特别的日子");
+        return builder.toString();
+    }
+
+    private String buildSmsContent(User user, BirthdayRole role, LocalDate upcomingBirthday) {
+        String remark = role.getRemark();
+        if (remark == null || remark.trim().isEmpty()) {
+            remark = "来自" + user.getUsername() + "的特别祝福，祝你生日快乐！";
+        }
+        return String.format("%s好，今天是您的生日 (%s)。%s", role.getRoleName(), DATE_FORMATTER.format(upcomingBirthday), remark);
     }
 }

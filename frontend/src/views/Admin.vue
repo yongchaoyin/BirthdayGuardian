@@ -7,17 +7,61 @@
 
     <!-- 统计卡片 -->
     <div class="stats-cards">
-      <div class="stat-card">
-        <h3>总用户数</h3>
+      <div class="stat-card highlight">
+        <h3>总用户</h3>
         <p class="stat-number">{{ stats.totalUsers || 0 }}</p>
+        <span class="stat-sub">守护者大家庭</span>
       </div>
       <div class="stat-card">
-        <h3>管理员数</h3>
+        <h3>管理员</h3>
         <p class="stat-number">{{ stats.adminCount || 0 }}</p>
+        <span class="stat-sub">运营守护助手</span>
       </div>
       <div class="stat-card">
-        <h3>普通用户数</h3>
-        <p class="stat-number">{{ stats.userCount || 0 }}</p>
+        <h3>VIP守护者</h3>
+        <p class="stat-number">{{ stats.vipCount || 0 }}</p>
+        <span class="stat-sub">拥有短信计划名额</span>
+      </div>
+      <div class="stat-card">
+        <h3>温馨体验</h3>
+        <p class="stat-number">{{ stats.freeCount || 0 }}</p>
+        <span class="stat-sub">可以升级的挚友</span>
+      </div>
+    </div>
+
+    <div class="stats-cards secondary">
+      <div class="stat-card">
+        <h3>今日生日</h3>
+        <p class="stat-number">{{ stats.todayBirthdayCount || 0 }}</p>
+        <span class="stat-sub">正在被守护的心意</span>
+      </div>
+      <div class="stat-card">
+        <h3>今日邮件提醒</h3>
+        <p class="stat-number">{{ stats.todayEmailCount || 0 }}</p>
+        <span class="stat-sub">已送达的暖心问候</span>
+      </div>
+      <div class="stat-card">
+        <h3>今日短信提醒</h3>
+        <p class="stat-number">{{ stats.todaySmsCount || 0 }}</p>
+        <span class="stat-sub">短信服务预备中</span>
+      </div>
+    </div>
+
+    <div class="stats-cards secondary">
+      <div class="stat-card">
+        <h3>明日生日</h3>
+        <p class="stat-number">{{ stats.tomorrowBirthdayCount || 0 }}</p>
+        <span class="stat-sub">稍后送上的祝福</span>
+      </div>
+      <div class="stat-card">
+        <h3>明日邮件计划</h3>
+        <p class="stat-number">{{ stats.tomorrowEmailPlanCount || 0 }}</p>
+        <span class="stat-sub">排队中的提醒</span>
+      </div>
+      <div class="stat-card">
+        <h3>明日短信计划</h3>
+        <p class="stat-number">{{ stats.tomorrowSmsPlanCount || 0 }}</p>
+        <span class="stat-sub">VIP优先通知</span>
       </div>
     </div>
 
@@ -48,13 +92,73 @@
         <button @click="loadUsers">搜索</button>
       </div>
 
+      <div class="broadcast-panel">
+        <el-card class="broadcast-card">
+          <template #header>
+            <div class="card-title">
+              <span>📧 群发邮件</span>
+            </div>
+          </template>
+          <el-form label-width="80px">
+            <el-form-item label="主题">
+              <el-input v-model="broadcastEmailForm.subject" placeholder="请输入邮件主题" />
+            </el-form-item>
+            <el-form-item label="内容">
+              <el-input
+                v-model="broadcastEmailForm.content"
+                type="textarea"
+                :rows="4"
+                placeholder="向所有有邮箱的用户发送提醒"
+              />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="sendBroadcastEmail" :loading="broadcastEmailLoading">
+                发送群邮
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+
+        <el-card class="broadcast-card">
+          <template #header>
+            <div class="card-title">
+              <span>📱 群发短信</span>
+            </div>
+          </template>
+          <el-form label-width="80px">
+            <el-form-item label="内容">
+              <el-input
+                v-model="broadcastSmsForm.content"
+                type="textarea"
+                :rows="4"
+                placeholder="向所有填写手机号的用户发送短信"
+              />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="warning" @click="sendBroadcastSms" :loading="broadcastSmsLoading">
+                发送群短信
+              </el-button>
+            </el-form-item>
+          </el-form>
+        </el-card>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-card-header">📈 通知发送趋势</div>
+        <div ref="notificationChart" class="trend-chart"></div>
+      </div>
+
       <table class="data-table">
         <thead>
           <tr>
             <th>ID</th>
             <th>用户名</th>
             <th>邮箱</th>
+            <th>手机号</th>
             <th>角色</th>
+            <th>会员等级</th>
+            <th>可守护人数</th>
+            <th>VIP到期</th>
             <th>注册时间</th>
             <th>操作</th>
           </tr>
@@ -64,6 +168,7 @@
             <td>{{ user.id }}</td>
             <td>{{ user.username }}</td>
             <td>{{ user.email }}</td>
+            <td>{{ user.phone || '—' }}</td>
             <td>
               <select
                 :value="user.role"
@@ -74,8 +179,22 @@
                 <option value="admin">管理员</option>
               </select>
             </td>
+            <td>
+              <span :class="['membership-pill', user.vipActive ? 'vip' : 'free']">
+                {{ user.vipActive ? 'VIP守护者' : '温馨体验' }}
+              </span>
+            </td>
+            <td>{{ user.maxRoleCount || (user.vipActive ? 20 : 3) }}</td>
+            <td>{{ formatVipExpire(user.vipExpireTime) }}</td>
             <td>{{ formatDate(user.createTime) }}</td>
             <td>
+              <button
+                class="btn-secondary"
+                @click="changeUserMembership(user, user.vipActive ? 'FREE' : 'VIP')"
+                :disabled="membershipUpdatingId === user.id || user.id === currentUserId"
+              >
+                {{ user.vipActive ? '降为体验' : '设为VIP' }}
+              </button>
               <button
                 @click="deleteUserConfirm(user.id)"
                 class="btn-danger"
@@ -165,8 +284,9 @@
 </template>
 
 <script>
-import { getUserList, getUserStats, updateUserRole, deleteUser } from '../api/admin'
+import { getUserList, getUserStats, updateUserRole, updateUserMembership, deleteUser, broadcastEmail, broadcastSms, getNotificationStats } from '../api/admin'
 import { getAnnouncementList, createAnnouncement, updateAnnouncement, deleteAnnouncement } from '../api/announcement'
+import * as echarts from 'echarts'
 
 export default {
   name: 'Admin',
@@ -181,6 +301,18 @@ export default {
       userPageSize: 10,
       userSearch: '',
       currentUserId: null,
+      membershipUpdatingId: null,
+      broadcastEmailForm: {
+        subject: '',
+        content: ''
+      },
+      broadcastSmsForm: {
+        content: ''
+      },
+      broadcastEmailLoading: false,
+      broadcastSmsLoading: false,
+      notificationTrend: [],
+      notificationChart: null,
 
       // 公告管理
       announcements: [],
@@ -212,6 +344,14 @@ export default {
     this.loadStats()
     this.loadUsers()
     this.loadAnnouncements()
+    this.loadNotificationTrend()
+  },
+  beforeUnmount() {
+    if (this.notificationChart) {
+      window.removeEventListener('resize', this.handleChartResize)
+      this.notificationChart.dispose()
+      this.notificationChart = null
+    }
   },
   methods: {
     async loadStats() {
@@ -252,6 +392,160 @@ export default {
       } catch (error) {
         console.error('更新角色失败:', error)
         alert('更新角色失败')
+      }
+    },
+
+    async changeUserMembership(user, targetLevel) {
+      if (this.membershipUpdatingId === user.id) return
+
+      if (targetLevel === 'VIP' && user.vipActive) {
+        alert('该用户已经是VIP守护者啦')
+        return
+      }
+      if (targetLevel === 'FREE' && !user.vipActive) {
+        alert('该用户当前处于温馨体验计划')
+        return
+      }
+
+      const confirmMessage = targetLevel === 'VIP'
+        ? `确认将用户「${user.username}」升级为VIP守护者吗？`
+        : `确认将用户「${user.username}」调整为温馨体验计划吗？`
+
+      if (!confirm(confirmMessage)) return
+
+      try {
+        this.membershipUpdatingId = user.id
+        const res = await updateUserMembership(user.id, targetLevel)
+        if (res.code === 200) {
+          alert('会员状态更新成功')
+          this.loadUsers()
+          this.loadStats()
+        }
+      } catch (error) {
+        console.error('更新会员状态失败:', error)
+        alert('更新会员状态失败')
+      } finally {
+        this.membershipUpdatingId = null
+      }
+    },
+
+    async sendBroadcastEmail() {
+      if (!this.broadcastEmailForm.subject.trim() || !this.broadcastEmailForm.content.trim()) {
+        alert('请填写邮件主题和内容')
+        return
+      }
+      try {
+        this.broadcastEmailLoading = true
+        const res = await broadcastEmail({
+          subject: this.broadcastEmailForm.subject,
+          content: this.broadcastEmailForm.content
+        })
+        if (res.code === 200) {
+          alert(`邮件已发送：成功 ${res.data.successCount} / ${res.data.targetCount}`)
+          this.loadNotificationTrend()
+        }
+      } catch (error) {
+        console.error('群发邮件失败:', error)
+        alert('群发邮件失败，请稍后再试')
+      } finally {
+        this.broadcastEmailLoading = false
+      }
+    },
+
+    async sendBroadcastSms() {
+      if (!this.broadcastSmsForm.content.trim()) {
+        alert('请填写短信内容')
+        return
+      }
+      try {
+        this.broadcastSmsLoading = true
+        const res = await broadcastSms({
+          content: this.broadcastSmsForm.content
+        })
+        if (res.code === 200) {
+          alert(`短信已发送：成功 ${res.data.successCount} / ${res.data.targetCount}`)
+          this.loadNotificationTrend()
+        }
+      } catch (error) {
+        console.error('群发短信失败:', error)
+        alert('群发短信失败，请稍后再试')
+      } finally {
+        this.broadcastSmsLoading = false
+      }
+    },
+
+    async loadNotificationTrend() {
+      try {
+        const res = await getNotificationStats({ days: 14 })
+        if (res.code === 200) {
+          this.notificationTrend = res.data.points || []
+          this.$nextTick(() => {
+            this.renderNotificationChart()
+          })
+        }
+      } catch (error) {
+        console.error('加载通知趋势失败:', error)
+      }
+    },
+
+    renderNotificationChart() {
+      if (!this.$refs.notificationChart) {
+        return
+      }
+      if (!this.notificationChart) {
+        this.notificationChart = echarts.init(this.$refs.notificationChart)
+        window.addEventListener('resize', this.handleChartResize)
+      }
+
+      const categories = this.notificationTrend.map(item => item.date)
+      const emailData = this.notificationTrend.map(item => item.emailCount || 0)
+      const smsData = this.notificationTrend.map(item => item.smsCount || 0)
+      const wechatData = this.notificationTrend.map(item => item.wechatCount || 0)
+
+      const option = {
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['邮件', '短信', '微信'] },
+        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+        xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: categories
+        },
+        yAxis: {
+          type: 'value',
+          minInterval: 1
+        },
+        series: [
+          {
+            name: '邮件',
+            type: 'line',
+            smooth: true,
+            data: emailData,
+            symbol: 'circle'
+          },
+          {
+            name: '短信',
+            type: 'line',
+            smooth: true,
+            data: smsData,
+            symbol: 'circle'
+          },
+          {
+            name: '微信',
+            type: 'line',
+            smooth: true,
+            data: wechatData,
+            symbol: 'circle'
+          }
+        ]
+      }
+
+      this.notificationChart.setOption(option, true)
+    },
+
+    handleChartResize() {
+      if (this.notificationChart) {
+        this.notificationChart.resize()
       }
     },
 
@@ -376,6 +670,11 @@ export default {
       return date.toLocaleString('zh-CN')
     },
 
+    formatVipExpire(dateStr) {
+      if (!dateStr) return '—'
+      return this.formatDate(dateStr)
+    },
+
     logout() {
       localStorage.removeItem('token')
       localStorage.removeItem('userInfo')
@@ -414,17 +713,33 @@ export default {
 
 .stats-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 20px;
   margin-bottom: 30px;
 }
 
+.stats-cards.secondary {
+  margin-top: -10px;
+}
+
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff;
   padding: 20px;
-  border-radius: 8px;
-  color: white;
+  border-radius: 12px;
+  color: #333;
   text-align: center;
+  box-shadow: 0 10px 24px rgba(102, 126, 234, 0.12);
+  border: 1px solid rgba(102, 126, 234, 0.15);
+}
+
+.stat-card.highlight {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.3);
+}
+
+.stats-cards.secondary .stat-card {
+  box-shadow: 0 6px 14px rgba(103, 114, 229, 0.12);
 }
 
 .stat-card h3 {
@@ -434,9 +749,38 @@ export default {
 }
 
 .stat-number {
-  font-size: 36px;
+  font-size: 32px;
   font-weight: bold;
   margin: 0;
+}
+
+.stat-card.highlight .stat-number {
+  color: #fff;
+}
+
+.stat-sub {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.stat-card:not(.highlight) .stat-sub {
+  color: #888;
+}
+
+.membership-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  background: #eef3ff;
+  color: #4a5fe2;
+}
+
+.membership-pill.vip {
+  background: #fff3e6;
+  color: #ff8c42;
 }
 
 .tabs {
@@ -519,6 +863,42 @@ export default {
   padding: 6px 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
+}
+
+.broadcast-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.broadcast-card {
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.12);
+}
+
+.broadcast-card .card-title {
+  font-weight: 600;
+  color: #4b4f7c;
+}
+
+.chart-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.15);
+}
+
+.chart-card-header {
+  font-weight: 600;
+  color: #4b4f7c;
+  margin-bottom: 10px;
+}
+
+.trend-chart {
+  width: 100%;
+  height: 320px;
 }
 
 .btn-primary {

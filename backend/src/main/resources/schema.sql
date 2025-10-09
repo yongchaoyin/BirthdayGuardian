@@ -8,8 +8,11 @@ CREATE TABLE IF NOT EXISTS `user` (
   `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `username` VARCHAR(50) NOT NULL COMMENT '用户名',
   `email` VARCHAR(100) NOT NULL COMMENT '邮箱',
+  `phone` VARCHAR(20) DEFAULT NULL COMMENT '联系电话',
   `password` VARCHAR(100) NOT NULL COMMENT '密码',
   `role` VARCHAR(20) NOT NULL DEFAULT 'user' COMMENT '角色：admin-管理员，user-普通用户',
+  `membership_level` VARCHAR(20) NOT NULL DEFAULT 'FREE' COMMENT '会员等级：FREE/VIP',
+  `vip_expire_time` DATETIME DEFAULT NULL COMMENT 'VIP到期时间',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -27,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `birthday_role` (
   `calendar_type` TINYINT NOT NULL DEFAULT 1 COMMENT '日历类型：1-阳历，2-阴历',
   `lunar_birth_date` VARCHAR(20) COMMENT '阴历生日',
   `remind_days` INT NOT NULL DEFAULT 3 COMMENT '提前提醒天数',
+  `role_phone` VARCHAR(20) DEFAULT NULL COMMENT '角色联系电话',
   `remark` VARCHAR(500) COMMENT '备注',
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -47,6 +51,40 @@ CREATE TABLE IF NOT EXISTS `announcement` (
   KEY `idx_status` (`status`),
   KEY `idx_create_time` (`create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='公告表';
+
+-- 通知发送日志表
+CREATE TABLE IF NOT EXISTS `notification_log` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` BIGINT NOT NULL COMMENT '用户ID',
+  `role_id` BIGINT NOT NULL COMMENT '生日角色ID',
+  `channel` VARCHAR(20) NOT NULL COMMENT '通知渠道：EMAIL/SMS/WECHAT',
+  `status` VARCHAR(20) NOT NULL DEFAULT 'SUCCESS' COMMENT '发送状态',
+  `title` VARCHAR(200) COMMENT '通知标题',
+  `content_preview` VARCHAR(500) COMMENT '通知内容预览',
+  `event_date` DATE COMMENT '关联事件日期，比如生日',
+  `send_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '发送时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_channel` (`channel`),
+  KEY `idx_send_time` (`send_time`),
+  KEY `idx_event_date` (`event_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通知发送日志表';
+
+-- 微信绑定表
+CREATE TABLE IF NOT EXISTS `user_wechat` (
+  `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `user_id` BIGINT NOT NULL COMMENT '用户ID',
+  `openid` VARCHAR(64) NOT NULL COMMENT '微信openid',
+  `unionid` VARCHAR(64) DEFAULT NULL COMMENT '微信unionid',
+  `session_key` VARCHAR(128) DEFAULT NULL COMMENT '会话密钥/凭证',
+  `nickname` VARCHAR(100) DEFAULT NULL COMMENT '微信昵称',
+  `avatar` VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
+  `subscribe` TINYINT DEFAULT 0 COMMENT '是否关注公众号：0-否 1-是',
+  `bind_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '绑定时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_id` (`user_id`),
+  UNIQUE KEY `uk_openid` (`openid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户与微信绑定表';
 
 -- 插入默认管理员账号 (密码: admin@123)
 INSERT INTO `user` (`username`, `email`, `password`, `role`)

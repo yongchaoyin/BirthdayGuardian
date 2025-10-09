@@ -1,6 +1,7 @@
 package com.birthday.guardian.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.birthday.guardian.common.MembershipLevel;
 import com.birthday.guardian.dto.ChangePasswordRequest;
 import com.birthday.guardian.dto.LoginRequest;
 import com.birthday.guardian.dto.LoginResponse;
@@ -12,6 +13,8 @@ import com.birthday.guardian.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import java.time.LocalDateTime;
 
 @Service
 public class UserService {
@@ -39,6 +42,8 @@ public class UserService {
         user.setEmail(request.getEmail());
         user.setPassword(DigestUtils.md5DigestAsHex(request.getPassword().getBytes()));
         user.setRole("user");
+        user.setMembershipLevel(MembershipLevel.FREE.name());
+        user.setVipExpireTime(null);
         userMapper.insert(user);
     }
 
@@ -69,12 +74,22 @@ public class UserService {
 
         System.out.println("密码验证成功，生成Token");
 
+        refreshMembershipStatus(user);
+        fillTransientFields(user);
+        MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
+        int maxRoleCount = level.getMaxRoleCount();
+
         LoginResponse response = new LoginResponse();
         response.setToken(jwtUtil.generateToken(user.getId()));
         response.setUserId(user.getId());
         response.setUsername(user.getUsername());
         response.setEmail(user.getEmail());
+        response.setPhone(user.getPhone());
         response.setRole(user.getRole());
+        response.setMembershipLevel(level.name());
+        response.setVipExpireTime(user.getVipExpireTime());
+        response.setMaxRoleCount(maxRoleCount);
+        response.setVipActive(level.isVip());
 
         System.out.println("登录成功 - Token: " + response.getToken());
 
@@ -82,7 +97,13 @@ public class UserService {
     }
 
     public User getUserById(Long userId) {
-        return userMapper.selectById(userId);
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            refreshMembershipStatus(user);
+            fillTransientFields(user);
+            user.setPassword(null);
+        }
+        return user;
     }
 
     public void changePassword(Long userId, ChangePasswordRequest request) {
@@ -90,6 +111,8 @@ public class UserService {
         if (user == null) {
             throw new RuntimeException("用户不存在");
         }
+
+        refreshMembershipStatus(user);
 
         String encryptedOldPassword = DigestUtils.md5DigestAsHex(request.getOldPassword().getBytes());
         if (!user.getPassword().equals(encryptedOldPassword)) {
@@ -107,6 +130,8 @@ public class UserService {
             throw new RuntimeException("用户不存在");
         }
 
+        refreshMembershipStatus(user);
+
         String encryptedPassword = DigestUtils.md5DigestAsHex(request.getPassword().getBytes());
         if (!user.getPassword().equals(encryptedPassword)) {
             throw new RuntimeException("密码错误");
@@ -121,5 +146,79 @@ public class UserService {
 
         user.setEmail(request.getEmail());
         userMapper.updateById(user);
+    }
+
+    public int getMaxRoleCount(User user) {
+        MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
+        return level.getMaxRoleCount();
+    }
+
+    public void updateMembership(Long userId, MembershipLevel level) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        if (level.isVip()) {
+            user.setMembershipLevel(MembershipLevel.VIP.name());
+            user.setVipExpireTime(LocalDateTime.now().plusYears(1));
+        } else {
+            user.setMembershipLevel(MembershipLevel.FREE.name());
+            user.setVipExpireTime(null);
+        }
+        userMapper.updateById(user);
+    }
+
+    public void updatePhone(Long userId, String phone) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        refreshMembershipStatus(user);
+        String trimmed = phone == null ? null : phone.trim();
+        user.setPhone((trimmed == null || trimmed.isEmpty()) ? null : trimmed);
+        userMapper.updateById(user);
+    }
+
+    public void updateUsername(Long userId, String username) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new RuntimeException("用户不存在");
+        }
+
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, username).ne(User::getId, userId);
+        if (userMapper.selectCount(wrapper) > 0) {
+            throw new RuntimeException("用户名已被占用");
+        }
+
+        user.setUsername(username);
+        userMapper.updateById(user);
+    }
+
+    private void refreshMembershipStatus(User user) {
+        if (user == null) {
+            return;
+        }
+
+        MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
+        if (level.isVip()) {
+            LocalDateTime expireTime = user.getVipExpireTime();
+            if (expireTime == null || expireTime.isBefore(LocalDateTime.now())) {
+                user.setMembershipLevel(MembershipLevel.FREE.name());
+                user.setVipExpireTime(null);
+                userMapper.updateById(user);
+            }
+        }
+    }
+
+    private void fillTransientFields(User user) {
+        if (user == null) {
+            return;
+        }
+        MembershipLevel level = MembershipLevel.fromCode(user.getMembershipLevel());
+        user.setMaxRoleCount(level.getMaxRoleCount());
+        user.setVipActive(level.isVip());
     }
 }
