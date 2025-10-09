@@ -1,0 +1,1 @@
+import{r as e}from"./request-Eu6Wjmw7.js";const u=()=>e({url:"/announcements/active",method:"get"}),r=n=>e({url:"/announcements/list",method:"get",params:n}),s=n=>e({url:"/announcements",method:"post",data:n}),c=(n,t)=>e({url:`/announcements/${n}`,method:"put",data:t}),m=n=>e({url:`/announcements/${n}`,method:"delete"});export{r as a,s as c,m as d,u as g,c as u};

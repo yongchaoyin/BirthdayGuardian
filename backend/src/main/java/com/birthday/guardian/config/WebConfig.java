@@ -30,6 +30,12 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        // 将根路径重定向到 index.html
+        registry.addViewController("/").setViewName("forward:/index.html");
+    }
+
+    @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 配置静态资源处理
         registry.addResourceHandler("/**")

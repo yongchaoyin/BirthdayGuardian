@@ -1,40 +1,24 @@
-# 第一阶段：构建前端
-FROM node:20-alpine AS frontend-builder
-
-WORKDIR /frontend
-
-# 复制前端代码
-COPY frontend/package*.json ./
-RUN npm install
-
-COPY frontend .
-RUN npm run build
-
-# 第二阶段：构建后端
-FROM maven:3.8.6-eclipse-temurin-17 AS backend-builder
+# 构建阶段
+FROM maven:3.8.6-eclipse-temurin-17 AS builder
 
 WORKDIR /app
 
-# 复制pom.xml并下载依赖
-COPY backend/pom.xml .
-RUN mvn dependency:go-offline -B
+# 复制所有必要文件并直接构建（跳过预下载依赖步骤）
+COPY pom.xml .
+COPY src/main/java ./src/main/java
+COPY src/main/resources/application.yml ./src/main/resources/application.yml
+COPY src/main/resources/schema.sql ./src/main/resources/schema.sql
 
-# 复制源代码
-COPY backend/src ./src
+# 直接构建项目（Maven会自动下载依赖）
+RUN mvn clean package -DskipTests -B
 
-# 从前端构建阶段复制静态资源到后端的static目录
-COPY --from=frontend-builder /frontend/dist ./src/main/resources/static
-
-# 构建后端
-RUN mvn clean package -DskipTests
-
-# 第三阶段：运行
+# 运行阶段
 FROM openjdk:17-jdk-slim
 
 WORKDIR /app
 
 # 复制构建的jar文件
-COPY --from=backend-builder /app/target/*.jar app.jar
+COPY --from=builder /app/target/*.jar app.jar
 
 # 暴露端口
 EXPOSE 8089

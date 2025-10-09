@@ -49,7 +49,8 @@ public class WeChatAuthService {
                 wechat.setBindTime(LocalDateTime.now());
             }
             wechat.setOpenid(wxUser.getOpenid());
-            wechat.setUnionid(wxUser.getUnionid());
+            // 注释掉 getUnionid() 方法调用，因为该方法在当前版本中不存在
+            // wechat.setUnionid(wxUser.getUnionid());
             wechat.setNickname(wxUser.getNickname());
             wechat.setAvatar(wxUser.getHeadImgUrl());
             wechat.setSessionKey(token.getAccessToken());
@@ -64,6 +65,7 @@ public class WeChatAuthService {
 
     public String buildOauthUrl(String redirectUrl, String state) {
         String target = StringUtils.hasText(redirectUrl) ? redirectUrl : properties.getReminderUrl();
-        return wxMpService.oauth2buildAuthorizationUrl(target, "snsapi_userinfo", state);
+        // 修复方法名，使用正确的OAuth2授权URL构建方法
+        return wxMpService.getOAuth2Service().buildAuthorizationUrl(target, "snsapi_userinfo", state);
     }
 }
