@@ -121,6 +121,7 @@
             v-model="roleForm.birthDate"
             type="date"
             placeholder="请选择出生日期"
+            format="YYYY年M月D号"
             value-format="YYYY-MM-DD"
           />
         </el-form-item>

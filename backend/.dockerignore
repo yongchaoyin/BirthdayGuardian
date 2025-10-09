@@ -3,7 +3,7 @@ node_modules/
 npm-debug.log
 .DS_Store
 dist/
-target/
+# target/  # 注释掉target目录，因为需要复制JAR文件
 *.class
 *.log
 .env

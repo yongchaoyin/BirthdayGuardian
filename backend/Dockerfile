@@ -1,31 +1,16 @@
-# 构建阶段
-FROM maven:3.8.6-eclipse-temurin-17 AS builder
+# 使用官方的 OpenJDK 17 镜像作为基础镜像
+FROM eclipse-temurin:17-jdk
 
-WORKDIR /app
-
-# 复制所有必要文件并直接构建（跳过预下载依赖步骤）
-COPY pom.xml .
-COPY src/main/java ./src/main/java
-COPY src/main/resources/application.yml ./src/main/resources/application.yml
-COPY src/main/resources/schema.sql ./src/main/resources/schema.sql
-
-# 直接构建项目（Maven会自动下载依赖）
-RUN mvn clean package -DskipTests -B
-
-# 运行阶段
-FROM openjdk:17-jdk-slim
-
-WORKDIR /app
-
-# 复制构建的jar文件
-COPY --from=builder /app/target/*.jar app.jar
-
-# 暴露端口
-EXPOSE 8089
+# 复制jar包至镜像内
+# 复制的目录需放置在与 Dockerfile 文件同级的目录下
+COPY target/guardian-1.0.0.jar /guardian-1.0.0.jar
 
 # 设置时区
 ENV TZ=Asia/Shanghai
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# 启动应用
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# 容器启动执行命令
+ENTRYPOINT ["java", "-jar", "/guardian-1.0.0.jar", "--spring.profiles.active=prod"]
+
+# 对外暴露的端口号
+EXPOSE 8089
