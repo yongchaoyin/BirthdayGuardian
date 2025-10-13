@@ -4,6 +4,10 @@ import com.birthday.guardian.common.Result;
 import com.birthday.guardian.entity.UserWechat;
 import com.birthday.guardian.service.WeChatAuthService;
 import me.chanjar.weixin.common.bean.WxJsapiSignature;
+import me.chanjar.weixin.mp.api.WxMpMessageRouter;
+import me.chanjar.weixin.mp.api.WxMpService;
+import me.chanjar.weixin.mp.bean.message.WxMpXmlMessage;
+import me.chanjar.weixin.mp.bean.message.WxMpXmlOutMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +22,66 @@ public class WeChatController {
 
     @Autowired
     private WeChatAuthService weChatAuthService;
+
+    @Autowired
+    private WxMpService wxMpService;
+
+    @Autowired(required = false)
+    private WxMpMessageRouter messageRouter;
+
+    /**
+     * 微信公众号服务器配置验证
+     * GET /api/wechat/portal
+     */
+    @GetMapping("/portal")
+    public String verifyWeChatServer(
+            @RequestParam(name = "signature", required = false) String signature,
+            @RequestParam(name = "timestamp", required = false) String timestamp,
+            @RequestParam(name = "nonce", required = false) String nonce,
+            @RequestParam(name = "echostr", required = false) String echostr) {
+
+        try {
+            if (wxMpService.checkSignature(timestamp, nonce, signature)) {
+                return echostr;
+            }
+        } catch (Exception e) {
+            System.err.println("微信服务器验证失败: " + e.getMessage());
+        }
+        return "error";
+    }
+
+    /**
+     * 接收微信公众号消息和事件
+     * POST /api/wechat/portal
+     */
+    @PostMapping(value = "/portal", produces = "application/xml; charset=UTF-8")
+    public String handleWeChatMessage(
+            @RequestBody String requestBody,
+            @RequestParam(name = "signature", required = false) String signature,
+            @RequestParam(name = "timestamp", required = false) String timestamp,
+            @RequestParam(name = "nonce", required = false) String nonce,
+            @RequestParam(name = "encrypt_type", required = false) String encryptType,
+            @RequestParam(name = "msg_signature", required = false) String msgSignature) {
+
+        try {
+            WxMpXmlMessage inMessage = WxMpXmlMessage.fromXml(requestBody);
+
+            // 如果配置了消息路由器，使用路由器处理消息
+            if (messageRouter != null) {
+                WxMpXmlOutMessage outMessage = messageRouter.route(inMessage);
+                if (outMessage != null) {
+                    return outMessage.toXml();
+                }
+            }
+
+            // 默认返回空字符串表示成功接收
+            return "success";
+        } catch (Exception e) {
+            System.err.println("处理微信消息失败: " + e.getMessage());
+            e.printStackTrace();
+            return "";
+        }
+    }
 
     @GetMapping("/oauth-url")
     public Result<?> getOauthUrl(@RequestParam(required = false) String redirect,
