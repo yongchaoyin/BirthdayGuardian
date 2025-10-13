@@ -1,0 +1,93 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <!-- 用户信息卡片 -->
+  <view class="profile-header">
+    <view class="avatar-section">
+      <view class="avatar">
+        <text class="avatar-text">{{userInfo.username ? userInfo.username.substring(0,1) : '守'}}</text>
+      </view>
+      <view class="user-info">
+        <text class="username">{{userInfo.username || '守护者'}}</text>
+        <text class="user-email">{{userInfo.email || ''}}</text>
+      </view>
+    </view>
+
+    <!-- 会员卡片 -->
+    <view class="membership-card {{membershipLevel === 'VIP' ? 'vip' : 'free'}}">
+      <view class="membership-header">
+        <text class="membership-title">{{membershipText}}</text>
+        <text class="membership-badge">{{membershipLevel}}</text>
+      </view>
+      <view class="membership-body">
+        <view class="membership-item">
+          <text class="item-label">守护名额</text>
+          <text class="item-value">{{remainingSlots}}/{{maxSlots}}</text>
+        </view>
+        <view class="membership-item" wx:if="{{membershipLevel === 'VIP'}}">
+          <text class="item-label">到期时间</text>
+          <text class="item-value">{{vipExpireDate}}</text>
+        </view>
+      </view>
+      <view class="membership-footer" wx:if="{{membershipLevel === 'FREE'}}">
+        <text class="upgrade-text">升级VIP可守护20位亲友</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="section">
+    <view class="section-title">个人设置</view>
+    <view class="menu-list">
+      <view class="menu-item" bindtap="handleUpdateUsername">
+        <view class="menu-left">
+          <text class="menu-icon">👤</text>
+          <text class="menu-text">修改用户名</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="handleUpdatePhone">
+        <view class="menu-left">
+          <text class="menu-icon">📱</text>
+          <text class="menu-text">绑定手机号</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="handleUpdateEmail">
+        <view class="menu-left">
+          <text class="menu-icon">📧</text>
+          <text class="menu-text">修改邮箱</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="section">
+    <view class="section-title">关于</view>
+    <view class="menu-list">
+      <view class="menu-item" bindtap="handleAbout">
+        <view class="menu-left">
+          <text class="menu-icon">ℹ️</text>
+          <text class="menu-text">关于我们</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+
+      <view class="menu-item" bindtap="handleContact">
+        <view class="menu-left">
+          <text class="menu-icon">✉️</text>
+          <text class="menu-text">联系客服</text>
+        </view>
+        <text class="menu-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="logout-section">
+    <button class="btn-logout" bindtap="handleLogout">退出登录</button>
+  </view>
+</view>

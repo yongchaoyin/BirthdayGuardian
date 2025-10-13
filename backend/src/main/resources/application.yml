@@ -56,3 +56,7 @@ wechat:
     aes-key: ${WECHAT_MP_AES_KEY:}
     birthday-template-id: ${WECHAT_MP_BIRTHDAY_TEMPLATE_ID:}
     reminder-url: ${WECHAT_MP_REMINDER_URL:}
+  # 微信小程序配置
+  miniapp:
+    app-id: ${WECHAT_MINIAPP_APP_ID:}
+    secret: ${WECHAT_MINIAPP_SECRET:}

@@ -1,0 +1,74 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 头部欢迎区 -->
+  <view class="header-section">
+    <view class="welcome-card">
+      <text class="welcome-title">Hi, {{userInfo.username || '守护者'}}</text>
+      <text class="welcome-subtitle">让每个重要的日子都不被遗忘</text>
+    </view>
+
+    <!-- 会员状态卡片 -->
+    <view class="membership-card">
+      <view class="membership-badge {{membershipLevel === 'VIP' ? 'vip' : 'free'}}">
+        <text>{{membershipText}}</text>
+      </view>
+      <view class="membership-info">
+        <text class="info-label">守护名额</text>
+        <text class="info-value">{{remainingSlots}}/{{maxSlots}}</text>
+      </view>
+      <view class="membership-info" wx:if="{{membershipLevel === 'VIP'}}">
+        <text class="info-label">VIP到期</text>
+        <text class="info-value">{{vipExpireDate}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 即将到来的生日 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">即将到来</text>
+      <text class="section-more" bindtap="goToBirthdayList">查看全部 ></text>
+    </view>
+
+    <view class="birthday-list" wx:if="{{upcomingBirthdays.length > 0}}">
+      <view class="birthday-item" wx:for="{{upcomingBirthdays}}" wx:key="id">
+        <view class="birthday-icon">🎂</view>
+        <view class="birthday-info">
+          <text class="birthday-name">{{item.roleName}}</text>
+          <text class="birthday-date">{{item.birthDate}} ({{item.calendarTypeText}})</text>
+        </view>
+        <view class="birthday-countdown">
+          <text class="countdown-days">{{item.daysUntil}}</text>
+          <text class="countdown-text">天后</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty-state" wx:else>
+      <text class="empty-icon">📅</text>
+      <text class="empty-text">暂无即将到来的生日</text>
+      <button class="btn-primary mt-20" bindtap="goToAddBirthday">添加生日提醒</button>
+    </view>
+  </view>
+
+  <!-- 快捷操作 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">快捷操作</text>
+    </view>
+    <view class="action-grid">
+      <view class="action-item" bindtap="goToAddBirthday">
+        <view class="action-icon">➕</view>
+        <text class="action-text">添加生日</text>
+      </view>
+      <view class="action-item" bindtap="goToBirthdayList">
+        <view class="action-icon">📋</view>
+        <text class="action-text">管理列表</text>
+      </view>
+      <view class="action-item" bindtap="goToProfile">
+        <view class="action-icon">👤</view>
+        <text class="action-text">个人中心</text>
+      </view>
+    </view>
+  </view>
+</view>

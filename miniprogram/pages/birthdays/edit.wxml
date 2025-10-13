@@ -1,0 +1,94 @@
+<!--pages/birthdays/edit.wxml-->
+<view class="container">
+  <view class="page-title">{{isEdit ? '编辑' : '添加'}}生日提醒</view>
+
+  <view class="form-container">
+    <!-- 角色类型 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">角色类型</text>
+        <text class="label-required">*</text>
+      </view>
+      <picker mode="selector" range="{{roleTypes}}" value="{{roleTypeIndex}}" bindchange="onRoleTypeChange">
+        <view class="picker-view">
+          <text class="picker-text">{{formData.roleType || '请选择角色类型'}}</text>
+          <text class="picker-icon">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 角色姓名 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">角色姓名</text>
+        <text class="label-required">*</text>
+      </view>
+      <input class="form-input" placeholder="请输入姓名" value="{{formData.roleName}}" bindinput="onRoleNameInput" />
+    </view>
+
+    <!-- 日历类型 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">日历类型</text>
+        <text class="label-required">*</text>
+      </view>
+      <picker mode="selector" range="{{calendarTypes}}" value="{{calendarTypeIndex}}" bindchange="onCalendarTypeChange">
+        <view class="picker-view">
+          <text class="picker-text">{{calendarTypes[calendarTypeIndex]}}</text>
+          <text class="picker-icon">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 出生日期 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">出生日期</text>
+        <text class="label-required">*</text>
+      </view>
+      <picker mode="date" value="{{formData.birthDate}}" bindchange="onBirthDateChange">
+        <view class="picker-view">
+          <text class="picker-text">{{formData.birthDate || '请选择日期'}}</text>
+          <text class="picker-icon">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 提前提醒天数 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">提前提醒天数</text>
+      </view>
+      <picker mode="selector" range="{{remindDaysOptions}}" value="{{remindDaysIndex}}" bindchange="onRemindDaysChange">
+        <view class="picker-view">
+          <text class="picker-text">提前{{formData.remindDays}}天</text>
+          <text class="picker-icon">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 联系电话 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">联系电话</text>
+        <text class="label-vip">VIP专享</text>
+      </view>
+      <input class="form-input" type="number" placeholder="用于生日当天发送短信祝福" value="{{formData.rolePhone}}" bindinput="onRolePhoneInput" />
+    </view>
+
+    <!-- 备注 -->
+    <view class="form-item">
+      <view class="form-label">
+        <text class="label-text">备注信息</text>
+      </view>
+      <textarea class="form-textarea" placeholder="填写备注信息,如礼物准备等" value="{{formData.remark}}" bindinput="onRemarkInput" maxlength="200" />
+      <text class="textarea-counter">{{formData.remark.length}}/200</text>
+    </view>
+
+    <!-- 按钮 -->
+    <view class="form-actions">
+      <button class="btn-submit" bindtap="handleSubmit">{{isEdit ? '保存' : '添加'}}</button>
+      <button class="btn-cancel" bindtap="handleCancel">取消</button>
+    </view>
+  </view>
+</view>

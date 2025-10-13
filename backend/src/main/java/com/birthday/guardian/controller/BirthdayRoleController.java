@@ -91,6 +91,9 @@ public class BirthdayRoleController {
                 data.put("invitedBy", null);
             }
             data.put("currentCount", roles.size());
+            // 计算剩余名额
+            int maxCount = user != null ? user.getMaxRoleCount() : 3;
+            data.put("remainingSlots", maxCount - roles.size());
             return Result.success(data);
         } catch (RuntimeException e) {
             return Result.error(400, e.getMessage());

@@ -18,6 +18,13 @@
 - ✅ 管理端通知趋势折线报表（邮件/短信发送量一目了然）
 - ✅ 个人中心可修改用户名、邮箱、手机号与密码
 - ✅ 微信公众号绑定与模板消息提醒（支持H5/小程序授权）
+- ✅ 微信小程序（生日管理、微信登录）
+
+## 平台支持
+
+- 🖥️ **Web端**：完整的管理后台和用户界面
+- 📱 **微信小程序**：便捷的移动端生日管理（仅包含生日增删改查功能）
+- 💬 **微信公众号**：生日提醒模板消息推送
 
 ## 会员制度与守护名额
 
@@ -41,12 +48,17 @@
 - JWT
 - Spring Mail
 
-### 前端
+### Web前端
 - Vue 3
 - Vite
 - Element Plus
 - Axios
 - Vue Router 4
+
+### 微信小程序
+- 微信小程序原生框架
+- Promise 异步处理
+- 模块化开发
 
 ### 部署
 - Docker
@@ -166,7 +178,7 @@ npm run dev
 ## 项目结构
 
 ```
-BirthdayGuardian-1/
+BirthdayGuardian/
 ├── backend/                      # Spring Boot后端
 │   ├── src/
 │   │   ├── main/
@@ -187,7 +199,7 @@ BirthdayGuardian-1/
 │   │   └── test/
 │   ├── Dockerfile                # 后端Docker配置
 │   └── pom.xml
-├── frontend/                     # Vue3前端
+├── frontend/                     # Vue3 Web前端
 │   ├── src/
 │   │   ├── api/                 # API接口
 │   │   ├── views/               # 页面组件
@@ -198,6 +210,15 @@ BirthdayGuardian-1/
 │   ├── nginx.conf               # Nginx配置
 │   ├── Dockerfile               # 前端Docker配置
 │   └── package.json
+├── miniprogram/                 # 微信小程序
+│   ├── api/                     # API接口封装
+│   ├── pages/                   # 小程序页面
+│   ├── utils/                   # 工具函数
+│   ├── images/                  # 图片资源
+│   ├── app.js                   # 小程序入口
+│   ├── app.json                 # 小程序配置
+│   ├── README.md                # 小程序说明文档
+│   └── DEPLOYMENT.md            # 小程序部署指南
 ├── docker-compose.yml           # Docker编排配置
 ├── .env.example                 # 环境变量模板
 ├── docker-start.sh              # Docker启动脚本
@@ -420,6 +441,10 @@ SPRING_MAIL_PORT=587
 SPRING_MAIL_USERNAME=your-email@gmail.com
 SPRING_MAIL_PASSWORD=your-app-password
 
+# 微信小程序配置
+WECHAT_MINIAPP_APP_ID=your-miniapp-appid
+WECHAT_MINIAPP_SECRET=your-miniapp-secret
+
 # 微信公众号配置
 WECHAT_MP_APP_ID=your-wechat-appid
 WECHAT_MP_SECRET=your-wechat-secret
@@ -438,6 +463,41 @@ SCHEDULE_CHECK_TIME=0 0 9 * * ?
 # 时区
 TZ=Asia/Shanghai
 ```
+
+## 微信小程序部署
+
+详细的小程序部署文档请查看：
+- [小程序说明文档](miniprogram/README.md)
+- [小程序部署指南](miniprogram/DEPLOYMENT.md)
+
+### 快速开始
+
+1. **配置小程序 AppID**
+
+在 `miniprogram/project.config.json` 中配置小程序 AppID
+
+2. **配置后端环境变量**
+
+```bash
+WECHAT_MINIAPP_APP_ID=your-miniapp-appid
+WECHAT_MINIAPP_SECRET=your-miniapp-secret
+```
+
+3. **修改 API 地址**
+
+在 `miniprogram/app.js` 中修改 `apiBase` 为实际后端地址
+
+4. **使用微信开发者工具打开 miniprogram 目录**
+
+### 小程序功能说明
+
+**注意**：小程序仅实现生日信息的增删改查功能，其他高级功能请使用 Web 端。
+
+包含功能：
+- 微信一键登录
+- 首页展示即将到来的生日
+- 生日管理（增删改查）
+- 个人中心（基本信息展示和修改）
 
 ## 微信公众号对接指引
 

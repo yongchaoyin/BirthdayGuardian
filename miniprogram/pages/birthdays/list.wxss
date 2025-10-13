@@ -1,0 +1,257 @@
+/* pages/birthdays/list.wxss */
+.container {
+  padding: 40rpx;
+  min-height: 100vh;
+}
+
+.header-stats {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 24rpx;
+  padding: 40rpx;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 32rpx;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-size: 56rpx;
+  font-weight: bold;
+  color: #fff;
+  margin-bottom: 8rpx;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.stat-divider {
+  width: 2rpx;
+  height: 60rpx;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.add-button-container {
+  margin-bottom: 32rpx;
+}
+
+.btn-add {
+  width: 100%;
+  height: 88rpx;
+  background: #fff;
+  border: 2rpx dashed #667eea;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-add::after {
+  border: none;
+}
+
+.btn-add-icon {
+  font-size: 40rpx;
+  margin-right: 16rpx;
+}
+
+.btn-add-text {
+  font-size: 32rpx;
+  color: #667eea;
+  font-weight: bold;
+}
+
+.birthday-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.birthday-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.role-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.role-type {
+  font-size: 24rpx;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+.role-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.countdown-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border-radius: 16rpx;
+}
+
+.countdown-number {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
+}
+
+.countdown-unit {
+  font-size: 20rpx;
+  color: #666;
+}
+
+.card-body {
+  margin-bottom: 24rpx;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+  gap: 12rpx;
+}
+
+.info-icon {
+  font-size: 32rpx;
+}
+
+.info-text {
+  font-size: 28rpx;
+  color: #666;
+  flex: 1;
+}
+
+.info-tag {
+  font-size: 24rpx;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.card-footer {
+  display: flex;
+  gap: 16rpx;
+}
+
+.btn-action {
+  flex: 1;
+  height: 72rpx;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.btn-action::after {
+  border: none;
+}
+
+.btn-danger {
+  background: #fff1f0;
+}
+
+.action-icon {
+  font-size: 32rpx;
+}
+
+.action-text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.btn-danger .action-text {
+  color: #ff4d4f;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 160rpx 40rpx;
+}
+
+.empty-icon {
+  font-size: 160rpx;
+  display: block;
+  margin-bottom: 40rpx;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #999;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.empty-hint {
+  font-size: 28rpx;
+  color: #ccc;
+  display: block;
+}
+
+.quota-notice {
+  position: fixed;
+  bottom: 40rpx;
+  left: 40rpx;
+  right: 40rpx;
+  background: #fff3cd;
+  border: 1rpx solid #ffc107;
+  border-radius: 16rpx;
+  padding: 24rpx;
+}
+
+.notice-content {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.notice-icon {
+  font-size: 40rpx;
+}
+
+.notice-text {
+  font-size: 28rpx;
+  color: #856404;
+  font-weight: bold;
+  flex: 1;
+}
+
+.notice-hint {
+  font-size: 24rpx;
+  color: #856404;
+}
