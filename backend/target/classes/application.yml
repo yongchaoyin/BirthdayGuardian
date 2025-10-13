@@ -1,0 +1,62 @@
+server:
+  port: 8089
+
+spring:
+  application:
+    name: birthday-guardian
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://59.110.14.90:3306/birthday_guardian?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:root}
+
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.163.com}
+    port: ${SPRING_MAIL_PORT:465}
+    username: ${SPRING_MAIL_USERNAME:ekker02@163.com}
+    password: ${SPRING_MAIL_PASSWORD:7ujm8ik,!}
+
+sms:
+  config:
+    config-type: YAML
+    is-print: false
+  blends:
+    default:
+      supplier: ${SMS_SUPPLIER:alibaba}
+      access-key-id: ${SMS_ACCESS_KEY:}
+      access-key-secret: ${SMS_ACCESS_SECRET:}
+      template-id: ${SMS_TEMPLATE_ID:}
+      template-name: ${SMS_TEMPLATE_NAME:content}
+      signature: ${SMS_SIGN_NAME:生日守护者}
+      region-id: ${SMS_REGION_ID:cn-hangzhou}
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.birthday.guardian.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# JWT配置
+jwt:
+  secret: ${JWT_SECRET:birthdayGuardianSecretKeyForHS512AlgorithmMustBeAtLeast64BytesLong2024}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# 定时任务配置
+schedule:
+  check-time: ${SCHEDULE_CHECK_TIME:0 0 9 * * ?}
+
+# 微信公众号配置
+wechat:
+  mp:
+    app-id: ${WECHAT_MP_APP_ID:}
+    secret: ${WECHAT_MP_SECRET:}
+    token: ${WECHAT_MP_TOKEN:}
+    aes-key: ${WECHAT_MP_AES_KEY:}
+    birthday-template-id: ${WECHAT_MP_BIRTHDAY_TEMPLATE_ID:}
+    reminder-url: ${WECHAT_MP_REMINDER_URL:}
+  # 微信小程序配置
+  miniapp:
+    app-id: ${WECHAT_MINIAPP_APP_ID:}
+    secret: ${WECHAT_MINIAPP_SECRET:}

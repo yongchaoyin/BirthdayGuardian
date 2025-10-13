@@ -47,7 +47,7 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "3.0.0",
+  "libVersion": "stable",
   "appid": "touristappid",
   "projectname": "birthday-guardian",
   "condition": {},
